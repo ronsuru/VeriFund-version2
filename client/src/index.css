@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+/* Base palette */
+  --background: #F5F5F5;          /* light gray */
+  --foreground: #424242;          /* dark gray text */
+
+  /* Surfaces */
+  --card: #FFFFFF;
+  --card-foreground: #424242;
+  --popover: #FFFFFF;
+  --popover-foreground: #424242;
+
+  /* Brand colors mapped to your palette */
+  --primary: #B9E937;             /* lime */
+  --primary-foreground: #424242;  /* readable on lime */
+  --secondary: #00B906;           /* green */
+  --secondary-foreground: #FFFFFF;
+  --accent: #B9E937;              /* align accent to primary */
+  --accent-foreground: #424242;
+
+  /* UI tokens */
+  --muted: #EBEBEB;
+  --muted-foreground: #666666;
+  --destructive: #E53935;
+  --destructive-foreground: #FFFFFF;
+  --border: #E0E0E0;
+  --input: #FFFFFF;
+  --ring: #B9E937;
+
+  /* Charts (use brand colors where possible) */
+  --chart-1: #B9E937;
+  --chart-2: #00B906;
+  --chart-3: #8BC34A;            /* supportive green */
+  --chart-4: #7CB342;            /* supportive green */
+  --chart-5: #AED581;            /* supportive green */
+  
+  /* Sidebar */
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(0 0% 26%);
+  --sidebar-primary: hsl(75 78% 58%);
+  --sidebar-primary-foreground: hsl(0 0% 26%);
+  --sidebar-accent: hsl(0 0% 94%);
+  --sidebar-accent-foreground: hsl(75 78% 58%);
+  --sidebar-border: hsl(0 0% 90%);
+  --sidebar-ring: hsl(75 78% 58%);
+  --font-sans: "Raleway", sans-serif;
+  --font-serif: "Lato", sans-serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+--background: #161B16;
+  --foreground: #F5F5F5;
+  --card: #424242;
+  --card-foreground: #E0E0E0;
+  --popover: #424242;
+  --popover-foreground: #F5F5F5;
+  --primary: #B9E937;
+  --primary-foreground: #121212;
+  --secondary: #00B906;
+  --secondary-foreground: #FFFFFF;
+  --muted: #262626;
+  --muted-foreground: #A3A3A3;
+  --accent: #B9E937;
+  --accent-foreground: #121212;
+  --destructive: #E53935;
+  --destructive-foreground: #FFFFFF;
+  --border: #333333;
+  --input: #424242;
+  --ring: #B9E937;
+  --chart-1: #B9E937;
+  --chart-2: #00B906;
+  --chart-3: #8BC34A;
+  --chart-4: #7CB342;
+  --chart-5: #AED581;
+  --sidebar: #424242;
+  --sidebar-foreground: #E0E0E0;
+  --sidebar-primary: #B9E937;
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: #424242;
+  --sidebar-accent-foreground: #B9E937;
+  --sidebar-border: #2A2A2A;
+  --sidebar-ring: #B9E937;
+  
+  /* Typography */
+  --font-sans: "Raleway", sans-serif;
+  --font-serif: "Lato", sans-serif;
+  --font-mono: Menlo, monospace;
+  --radius: 1.3rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+}
+
+@layer base {
+  * {
+    /* border styling handled by CSS variables */
+  }
+
+  body {
+    font-family: var(--font-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Headers use Raleway font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+  }
+  
+  /* Navigation and UI elements use Raleway */
+  .nav-element, .button-text, .menu-item {
+    font-family: var(--font-sans);
+  }
+  
+  /* Body text, paragraphs, and content use Lato */
+  p, .content-text, .description, .body-text {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Custom scrollbar styles */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0 0% 70%) hsl(0 0% 92%);
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(0 0% 92%);
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(0 0% 70%);
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(0 0% 60%);
+  }
+  
+  .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+    background: hsl(0 0% 83%);
+  }
+  
+  .scrollbar-track-gray-100::-webkit-scrollbar-track {
+    background: hsl(0 0% 96%);
+  }
+  
+  /* Dark mode scrollbar */
+  .dark .scrollbar-thin {
+    scrollbar-color: hsl(0 0% 40%) hsl(0 0% 20%);
+  }
+  
+  .dark .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(0 0% 20%);
+  }
+  
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(0 0% 40%);
+  }
+  
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(0 0% 50%);
+  }
+}
