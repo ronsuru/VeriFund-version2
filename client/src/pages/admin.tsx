@@ -48,6 +48,7 @@ import {
   AlertTriangle,
   AlertCircle,
   User as UserIcon,
+  Menu,
   UserCheck,
   Video,
   Image as ImageIcon,
@@ -61,7 +62,9 @@ import {
 CreditCard,
   List,
   Bell,
-  ArrowLeft
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import Navigation from "@/components/navigation";import type { User } from "@shared/schema";
 import { parseDisplayId, entityTypeMap, isStandardizedId, generateSearchSuggestions } from '@shared/idUtils';
@@ -8599,6 +8602,8 @@ function AdminPage() {
   const hasAdminAccess = (serverUser as any)?.isAdmin === true || (serverUser as any)?.isSupport === true;
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("main");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isWorkspaceExpanded, setIsWorkspaceExpanded] = useState(false);
 
   // Shared report modal states
   const [selectedReport, setSelectedReport] = useState<any>(null);
@@ -8784,11 +8789,20 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
     { id: "notifications", label: "Notifications", icon: Bell, href: "/admin?tab=notifications" },
     { id: "tickets", label: "Tickets", icon: MessageSquare, href: "/admin?tab=tickets" },  ];
 
-  const sidenavItems = [
+  const workspaceItems = [
+    { id: "my-works", label: "Overview", icon: BarChart3 },
     { id: "volunteers", label: "Volunteers", icon: Users },
     { id: "financial", label: "Financial", icon: DollarSign },
-    { id: "invite", label: "Access", icon: Mail },
-    { id: "security", label: "Security", icon: Shield },
+    { id: "stories", label: "Stories", icon: BookOpen },
+    { id: "access", label: "Access", icon: Shield },
+    { id: "invite", label: "Invites", icon: Mail },
+  ];
+
+  const sidenavItems = [
+    { id: "kyc", label: "KYC", icon: Shield },
+    { id: "campaigns", label: "Campaigns", icon: Target },
+    { id: "reports", label: "Reports", icon: FileText },
+    { id: "tickets", label: "Tickets", icon: MessageSquare },
   ];
 
   const renderContent = () => {
@@ -8848,75 +8862,179 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
       {/* Top Navigation - sticky, hide user "My Profile" shortcut on admin */}
       <Navigation variant="sticky" hideAdminProfileLink />
 
-      {/* Admin Main Navigation Tabs */}
-      <div className="bg-white border-b border-gray-200 px-6">
-        <nav className="flex space-x-8">
-          {navigationItems.map((item) => {
-            const IconComponent = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  const params = new URLSearchParams(window.location.search);
-                  params.set('tab', item.id);
-                  window.history.replaceState({}, '', `/admin?${params.toString()}`);
-                }}
-                className={`${
-                  activeTab === item.id
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
-                data-testid={`admin-nav-${item.id}`}
-              >
-                <IconComponent className="h-5 w-5" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>      {/* Side Navigation */}
-      <div className="flex">
-        <div className="hidden md:flex md:w-64 md:flex-col">
-          <div className="flex-1 min-h-0 bg-white shadow">
-            <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-              <nav className="mt-5 flex-1 px-2 space-y-1">
+
+
+      {/* Navigation Drawer Toggle Button */}
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 px-4 py-3 rounded-xl transition-all duration-200 hover:shadow-sm border border-gray-200 hover:border-gray-300"
+            data-testid="drawer-toggle"
+          >
+            <div className="p-1.5 bg-gray-100 rounded-lg">
+              <Menu className="h-4 w-4" />
+            </div>
+            <span className="text-sm font-semibold">Admin Menu</span>
+          </button>
+          
+          {/* Notification Icon */}
+          <button
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 hover:shadow-sm"
+            data-testid="notification-button"
+          >
+            <Bell className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content - Full Width */}
+      <div className="flex-1 overflow-auto">
+        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
+          <div className="py-4 px-4 md:py-6 md:px-6">
+            {safeContent}
+          </div>
+        </main>
+      </div>
+
+      {/* Modern Navigation Drawer */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-50"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-30 transition-opacity duration-300" />
+          
+          {/* Drawer Container */}
+          <div className="absolute left-0 top-0 h-full w-80 max-w-sm">
+            {/* Drawer */}
+            <div className="h-full bg-white shadow-2xl rounded-r-2xl flex flex-col overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">A</span>
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900">Admin Panel</h2>
+                </div>
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              
+              {/* Navigation */}
+              <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                {/* My Workspace - Collapsible */}
+                <div className="space-y-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsWorkspaceExpanded(!isWorkspaceExpanded);
+                    }}
+                    className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 hover:shadow-sm"
+                    data-testid="drawer-workspace-toggle"
+                  >
+                    <div className="flex items-center">
+                      <div className="p-2 rounded-lg mr-3 bg-gray-100 text-gray-500">
+                        <UserCheck className="h-4 w-4" />
+                      </div>
+                      <span className="font-medium">My Workspace</span>
+                    </div>
+                    {isWorkspaceExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    )}
+                  </button>
+                  
+                  {/* Workspace Sub-items */}
+                  {isWorkspaceExpanded && (
+                    <div className="ml-6 space-y-1">
+                      {workspaceItems.map((item) => {
+                        const IconComponent = item.icon;
+                        const isActive = activeTab === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveTab(item.id);
+                              setIsMobileSidebarOpen(false);
+                              const params = new URLSearchParams(window.location.search);
+                              params.set('tab', item.id);
+                              window.history.replaceState({}, '', `/admin?${params.toString()}`);
+                            }}
+                            className={`${
+                              isActive
+                                ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-r-2 border-indigo-500'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            } group flex items-center px-4 py-2 text-sm font-medium rounded-lg w-full text-left transition-all duration-200 hover:shadow-sm`}
+                            data-testid={`drawer-nav-${item.id}`}
+                          >
+                            <div className={`p-1.5 rounded-md mr-3 transition-colors ${
+                              isActive 
+                                ? 'bg-indigo-100 text-indigo-600' 
+                                : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-600'
+                            }`}>
+                              <IconComponent className="h-3.5 w-3.5" />
+                            </div>
+                            <span className="font-medium">{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Other Navigation Items */}
                 {sidenavItems.map((item) => {
                   const IconComponent = item.icon;
+                  const isActive = activeTab === item.id;
                   return (
                     <button
                       key={item.id}
-onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setActiveTab(item.id);
+                        setIsMobileSidebarOpen(false);
                         const params = new URLSearchParams(window.location.search);
                         params.set('tab', item.id);
                         window.history.replaceState({}, '', `/admin?${params.toString()}`);
-                      }}                      className={`${
-                        activeTab === item.id
-                          ? 'bg-indigo-100 text-indigo-900'
+                      }}
+                      className={`${
+                        isActive
+                          ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-r-2 border-indigo-500'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full text-left`}
-                      data-testid={`sidenav-${item.id}`}
+                      } group flex items-center px-4 py-3 text-sm font-medium rounded-xl w-full text-left transition-all duration-200 hover:shadow-sm`}
+                      data-testid={`drawer-nav-${item.id}`}
                     >
-                      <IconComponent className="h-5 w-5 mr-3" />
-                      {item.label}
+                      <div className={`p-2 rounded-lg mr-3 transition-colors ${
+                        isActive 
+                          ? 'bg-indigo-100 text-indigo-600' 
+                          : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 group-hover:text-gray-600'
+                      }`}>
+                        <IconComponent className="h-4 w-4" />
+                      </div>
+                      <span className="font-medium">{item.label}</span>
                     </button>
                   );
                 })}
               </nav>
+              
+              {/* Footer */}
+              <div className="p-4 border-t border-gray-100">
+                <div className="text-xs text-gray-500 text-center">
+                  VeriFund Admin Panel
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
-<div className="py-6 px-4">              {safeContent}
-            </div>
-          </main>
-        </div>
-      </div>
-
+      )}
 
     </div>
   );

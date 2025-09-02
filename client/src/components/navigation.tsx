@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Bell, ChevronDown, MessageCircle, Coins } from "lucide-react";import { DepositModal } from "@/components/deposit-modal";
+import { Menu, X, Bell, ChevronDown, MessageCircle, Coins, Power } from "lucide-react";import { DepositModal } from "@/components/deposit-modal";
 import { UserSwitcher } from "@/components/user-switcher";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Notification } from "@shared/schema";
-import { DarkModeToggle } from "@/components/DarkModeToggle";
+
 
 type NavigationProps = {
   variant?: 'floating' | 'sticky' | 'sticky-compact';
@@ -287,7 +287,6 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <DarkModeToggle />
             {isAuthenticated && user && (
               <div className="hidden md:flex items-center gap-2 sm:gap-3">
                 {/* Notification Bell */}
@@ -408,7 +407,7 @@ onClick={() => {
                 </Button>
               </div>
             ) : (
-<div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="icon"                  onClick={async () => {
@@ -428,20 +427,51 @@ onClick={() => {
                   }}
                   data-testid="button-logout"
                 >
-                  <X className="w-4 h-4" />
+                  <Power className="w-4 h-4" />
                 </Button>
               </div>
             )}
 
-            {/* Mobile menu button - show only when authenticated */}
+            {/* Mobile wallet icon, logout button and menu button - show only when authenticated */}
             {isAuthenticated && (
-              <button
-                className="md:hidden p-2"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                data-testid="button-mobile-menu"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
+              <div className="md:hidden flex items-center gap-2">
+                {/* Wallet icon for regular users only, not admin/support */}
+                {user && !(user as any)?.isAdmin && !(user as any)?.isSupport && (
+                  <div className="p-2">
+                    <DepositModal showText={false} />
+                  </div>
+                )}
+                {/* Logout button for mobile */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={async () => {
+                    try {
+                      // Sign out from Supabase (clears OAuth tokens)
+                      await supabase.auth.signOut();
+                    } catch {}
+
+                    try {
+                      // Clear server-side session
+                      await apiRequest("POST", "/api/auth/signout", {});
+                    } catch {}
+
+                    // Clear client caches and redirect to landing page
+                    queryClient.clear();
+                    window.location.href = "/";
+                  }}
+                  data-testid="button-logout-mobile"
+                >
+                  <Power className="w-4 h-4" />
+                </Button>
+                <button
+                  className="p-2"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  data-testid="button-mobile-menu"
+                >
+                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -675,14 +705,17 @@ onClick={() => {
                 </>
               )}
 
-              {/* Wallet Balance for regular users only, not admin/support */}
+              {/* Wallet Balance and Deposit Button for regular users only, not admin/support */}
               {user && !(user as any)?.isAdmin && !(user as any)?.isSupport && (
-                <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg mt-2">
-                  <Coins className="text-accent w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    ₱{parseFloat((user as any).phpBalance || "0").toLocaleString()}
-                  </span>
-                  <Badge variant="secondary" className="text-xs">PHP</Badge>
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
+                    <Coins className="text-accent w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      ₱{parseFloat((user as any).phpBalance || "0").toLocaleString()}
+                    </span>
+                    <Badge variant="secondary" className="text-xs">PHP</Badge>
+                  </div>
+
                 </div>
               )}
             </div>

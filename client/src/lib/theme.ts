@@ -45,7 +45,7 @@ export function setMode(mode: ThemeMode) {
 export function initTheme() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   const stored = getStoredTheme();
-  applyMode(stored ?? (getSystemPrefersDark() ? 'dark' : 'light'));
+  applyMode(stored ?? 'light'); // Default to light mode
   // Re-apply active theme variables if any
   try {
     const activeName = localStorage.getItem(ACTIVE_THEME_KEY) || 'Default';
