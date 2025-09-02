@@ -2600,14 +2600,66 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
-<TabsTrigger value="pending-kyc">Pending KYC ({(claimedKyc || []).length})</TabsTrigger>
-              <TabsTrigger value="pending-campaigns">Pending Campaigns ({(claimedCampaigns || []).length})</TabsTrigger>
-              <TabsTrigger value="document-reports">Document Reports ({(claimedReports || []).length})</TabsTrigger>
-              <TabsTrigger value="campaign-reports">Campaign Reports ({(claimedCampaignReports || []).length})</TabsTrigger>
-              <TabsTrigger value="volunteer-reports">Volunteer Reports ({(claimedVolunteerReports || []).length})</TabsTrigger>
-              <TabsTrigger value="creator-reports">Creator Reports ({(claimedCreatorReports || []).length})</TabsTrigger>
-              <TabsTrigger value="suspended-users">Suspended ({(claimedSuspendedUsersData || []).length})</TabsTrigger>            </TabsList>
+            <div className="w-full">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 p-1 bg-gray-100 rounded-lg">
+                <TabsTrigger 
+                  value="pending-kyc" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Pending KYC</span>
+                  <span className="sm:hidden">KYC</span>
+                  <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedKyc || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pending-campaigns" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Pending Campaigns</span>
+                  <span className="sm:hidden">Campaigns</span>
+                  <span className="ml-1 bg-green-100 text-green-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedCampaigns || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="document-reports" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Document Reports</span>
+                  <span className="sm:hidden">Docs</span>
+                  <span className="ml-1 bg-purple-100 text-purple-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedReports || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="campaign-reports" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Campaign Reports</span>
+                  <span className="sm:hidden">C Reports</span>
+                  <span className="ml-1 bg-orange-100 text-orange-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedCampaignReports || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="volunteer-reports" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Volunteer Reports</span>
+                  <span className="sm:hidden">V Reports</span>
+                  <span className="ml-1 bg-teal-100 text-teal-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedVolunteerReports || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="creator-reports" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Creator Reports</span>
+                  <span className="sm:hidden">Cr Reports</span>
+                  <span className="ml-1 bg-pink-100 text-pink-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedCreatorReports || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="suspended-users" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Suspended</span>
+                  <span className="sm:hidden">Suspended</span>
+                  <span className="ml-1 bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedSuspendedUsersData || []).length}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="pending-kyc" className="mt-4">
               <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -3072,49 +3124,104 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
         </CardHeader>
         <CardContent>
           <Tabs value={completedTab} onValueChange={setCompletedTab}>
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
-<TabsTrigger value="completed-kyc">Completed KYC ({(completedKyc || []).length})</TabsTrigger>
-              <TabsTrigger value="completed-campaigns">Campaigns ({(claimedCampaigns || []).length + (completedCampaigns || []).length})</TabsTrigger>
-              <TabsTrigger value="completed-documents">Documents ({(completedDocuments || []).length})</TabsTrigger>
-              <TabsTrigger value="completed-campaign-reports">Campaign Reports ({(reportedCampaigns || []).length})</TabsTrigger>
-              <TabsTrigger value="completed-volunteers">Volunteers ({(completedVolunteers || []).length})</TabsTrigger>
-              <TabsTrigger value="completed-creators">Creators ({(completedCreators || []).length})</TabsTrigger>
-              <TabsTrigger value="completed-suspended">Suspended ({(completedSuspendedUsers || []).length})</TabsTrigger>            </TabsList>
+            <div className="w-full">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 p-1 bg-gray-100 rounded-lg">
+                <TabsTrigger 
+                  value="completed-kyc" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Completed KYC</span>
+                  <span className="sm:hidden">KYC</span>
+                  <span className="ml-1 bg-green-100 text-green-800 text-xs px-1.5 py-0.5 rounded-full">{(completedKyc || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed-campaigns" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Campaigns</span>
+                  <span className="sm:hidden">Campaigns</span>
+                  <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedCampaigns || []).length + (completedCampaigns || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed-documents" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Documents</span>
+                  <span className="sm:hidden">Docs</span>
+                  <span className="ml-1 bg-purple-100 text-purple-800 text-xs px-1.5 py-0.5 rounded-full">{(completedDocuments || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed-campaign-reports" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Campaign Reports</span>
+                  <span className="sm:hidden">C Reports</span>
+                  <span className="ml-1 bg-orange-100 text-orange-800 text-xs px-1.5 py-0.5 rounded-full">{(reportedCampaigns || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed-volunteers" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Volunteers</span>
+                  <span className="sm:hidden">Volunteers</span>
+                  <span className="ml-1 bg-teal-100 text-teal-800 text-xs px-1.5 py-0.5 rounded-full">{(completedVolunteers || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed-creators" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Creators</span>
+                  <span className="sm:hidden">Creators</span>
+                  <span className="ml-1 bg-pink-100 text-pink-800 text-xs px-1.5 py-0.5 rounded-full">{(completedCreators || []).length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed-suspended" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Suspended</span>
+                  <span className="sm:hidden">Suspended</span>
+                  <span className="ml-1 bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-full">{(completedSuspendedUsers || []).length}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="completed-kyc" className="mt-4">
               <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
 {(completedKyc || []).length === 0 ? (
                   <p className="text-center text-gray-500 py-8">No completed KYC requests</p>
                 ) : (
-                  (completedKyc || []).slice(0, 10).map((kyc: any) => (                    <div key={kyc.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
+                  (completedKyc || []).slice(0, 10).map((kyc: any) => (                    <div key={kyc.id} className="border rounded-lg p-3 md:p-4 bg-green-50 border-green-200">
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <Avatar className="h-8 w-8 md:h-10 md:w-10">
                             <AvatarImage src={kyc.profileImageUrl} />
-                            <AvatarFallback>{kyc.firstName?.[0]}{kyc.lastName?.[0]}</AvatarFallback>
+                            <AvatarFallback className="text-xs md:text-sm">{kyc.firstName?.[0]}{kyc.lastName?.[0]}</AvatarFallback>
                           </Avatar>
-                          <div>
-                            <h4 className="font-medium">{kyc.firstName} {kyc.lastName}</h4>
-                            <p className="text-sm text-gray-600">{kyc.email}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-sm text-gray-600">User ID:</span>
-                              <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                                <span className="font-mono">{kyc.userDisplayId}</span>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-medium text-sm md:text-base truncate">{kyc.firstName} {kyc.lastName}</h4>
+                            <p className="text-xs md:text-sm text-gray-600 truncate">{kyc.email}</p>
+                            <div className="flex items-center gap-1 md:gap-2 mt-1">
+                              <span className="text-xs md:text-sm text-gray-600">User ID:</span>
+                              <div className="bg-green-100 text-green-800 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-xs font-medium">
+                                <span className="font-mono text-xs">{kyc.userDisplayId}</span>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-green-100 text-green-800 border-green-300">
+                        <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+                          <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
                             <CheckCircle className="w-3 h-3 mr-1" />
-                            Completed
+                            <span className="hidden sm:inline">Completed</span>
+                            <span className="sm:hidden">Done</span>
                           </Badge>
                           <Button 
                             size="sm" 
                             variant="outline"
+                            className="text-xs px-2 md:px-3"
                             onClick={() => toggleExpanded(kyc.id)}
                           >
-                            {expandedItems.includes(kyc.id) ? "Hide Details" : "View Details"}
+                            <span className="hidden sm:inline">{expandedItems.includes(kyc.id) ? "Hide Details" : "View Details"}</span>
+                            <span className="sm:hidden">{expandedItems.includes(kyc.id) ? "Hide" : "View"}</span>
                           </Button>
                         </div>
                       </div>
@@ -3131,53 +3238,59 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
                   <p className="text-center text-gray-500 py-8">No completed campaign reviews</p>
                 ) : (
                   completedCampaigns.slice(0, 10).map((campaign: any) => (
-                    <div key={campaign.id} className="border rounded-lg p-4 bg-purple-50 border-purple-200">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium">{campaign.title}</h4>
+                    <div key={campaign.id} className="border rounded-lg p-3 md:p-4 bg-purple-50 border-purple-200">
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1 md:gap-2 mb-2">
+                            <h4 className="font-medium text-sm md:text-base truncate">{campaign.title}</h4>
                             <Badge variant="outline" className="text-xs">
                               {campaign.campaignDisplayId || 'N/A'}
                             </Badge>
                             {campaign.claimedBy && (
                               <Badge variant="outline" className="text-xs bg-blue-50">
-                                ● CLAIMED by {campaign.claimedBy}
+                                <span className="hidden sm:inline">● CLAIMED by {campaign.claimedBy}</span>
+                                <span className="sm:hidden">● {campaign.claimedBy}</span>
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 mb-1">
+                          <p className="text-xs md:text-sm text-gray-500 mb-1 line-clamp-2">
                             {campaign.description?.substring(0, 100) || 'No description available'}...
                           </p>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-600">
                             <span>Goal: ₱{campaign.goalAmount?.toLocaleString() || '0'}</span>
                             <span>Current: ₱{campaign.currentAmount?.toLocaleString() || '0'}</span>
-                            <Badge variant="outline">{campaign.category || 'General'}</Badge>
+                            <Badge variant="outline" className="text-xs">{campaign.category || 'General'}</Badge>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2 ml-4">
-                          <div className="flex gap-2">
+                        <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
+                          <div className="flex flex-col sm:flex-row gap-1 md:gap-2">
                             <Button 
                               size="sm" 
                               variant="outline"
+                              className="text-xs px-2 md:px-3"
                               onClick={() => toggleExpanded(`creator-${campaign.id}`)}
                             >
-                              {expandedItems.includes(`creator-${campaign.id}`) ? "Hide Creator" : "View Creator Details"}
+                              <span className="hidden sm:inline">{expandedItems.includes(`creator-${campaign.id}`) ? "Hide Creator" : "View Creator Details"}</span>
+                              <span className="sm:hidden">{expandedItems.includes(`creator-${campaign.id}`) ? "Hide Creator" : "Creator"}</span>
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline"
+                              className="text-xs px-2 md:px-3"
                               onClick={() => toggleExpanded(`campaign-${campaign.id}`)}
                             >
-                              {expandedItems.includes(`campaign-${campaign.id}`) ? "Hide Campaign" : "View Campaign Details"}
+                              <span className="hidden sm:inline">{expandedItems.includes(`campaign-${campaign.id}`) ? "Hide Campaign" : "View Campaign Details"}</span>
+                              <span className="sm:hidden">{expandedItems.includes(`campaign-${campaign.id}`) ? "Hide Campaign" : "Campaign"}</span>
                             </Button>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+                          <div className="flex flex-wrap items-center gap-1 md:gap-2">
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               {campaign.status || 'active'}
                             </Badge>
                             <span className="text-xs text-gray-400">
-                              Completed: {campaign.completedAt ? new Date(campaign.completedAt).toLocaleDateString() : new Date(campaign.approvedAt || campaign.rejectedAt).toLocaleDateString()}
+                              <span className="hidden sm:inline">Completed: </span>
+                              {campaign.completedAt ? new Date(campaign.completedAt).toLocaleDateString() : new Date(campaign.approvedAt || campaign.rejectedAt).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -3747,23 +3860,23 @@ function KYCSection() {
         <p className="text-center text-gray-500 py-8">No users found</p>
       ) : (
         users.slice(0, 10).map((user: any) => (
-          <div key={user.id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Avatar>
+          <div key={user.id} className="border rounded-lg p-3 md:p-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Avatar className="h-8 w-8 md:h-10 md:w-10">
                   <AvatarImage src={user.profileImageUrl} />
-                  <AvatarFallback>{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+                  <AvatarFallback className="text-xs md:text-sm">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="font-medium">{user.firstName} {user.lastName}</p>
-                  <p className="text-sm text-gray-600">{user.email}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-sm md:text-base truncate">{user.firstName} {user.lastName}</p>
+                  <p className="text-xs md:text-sm text-gray-600 truncate">{user.email}</p>
                   {showKycStatus && (
-                    <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' ? 'secondary' : 'destructive'}>
+                    <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' ? 'secondary' : 'destructive'} className="text-xs mt-1">
                       {user.kycStatus || 'pending'}
                     </Badge>
                   )}
                   {user.kycStatus === 'on_progress' && user.processedByAdmin && (
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-gray-500 space-y-0.5">
                       <p><strong>Claimed by:</strong> {user.processedByAdmin}</p>
                       {user.dateClaimed && (
                         <p><strong>Claimed:</strong> {new Date(user.dateClaimed).toLocaleString()}</p>
@@ -3772,31 +3885,41 @@ function KYCSection() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1 md:gap-2 flex-shrink-0">
                 {showClaimButton && user.kycStatus === 'pending' && (
                   <Button
                     size="sm"
+                    className="text-xs px-2 md:px-3"
                     onClick={() => claimKycMutation.mutate(user.id)}
                     disabled={claimKycMutation.isPending || claimedUsers.has(user.id)}
                   >
                     {claimKycMutation.isPending && claimKycMutation.variables === user.id ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                        Claiming...
+                        <Loader2 className="w-3 h-3 md:w-4 md:h-4 mr-1 animate-spin" />
+                        <span className="hidden sm:inline">Claiming...</span>
+                        <span className="sm:hidden">...</span>
                       </>
                     ) : claimedUsers.has(user.id) ? (
-                      "Claimed"
+                      <>
+                        <span className="hidden sm:inline">Claimed</span>
+                        <span className="sm:hidden">✓</span>
+                      </>
                     ) : (
-                      "Claim"
+                      <>
+                        <span className="hidden sm:inline">Claim</span>
+                        <span className="sm:hidden">C</span>
+                      </>
                     )}
                   </Button>
                 )}
                 <Button 
                   variant="outline" 
                   size="sm"
+                  className="text-xs px-2 md:px-3"
                   onClick={() => toggleUserExpanded(user.id)}
                 >
-                  {expandedUsers.includes(user.id) ? 'Hide Details' : 'View Details'}
+                  <span className="hidden sm:inline">{expandedUsers.includes(user.id) ? 'Hide Details' : 'View Details'}</span>
+                  <span className="sm:hidden">{expandedUsers.includes(user.id) ? 'Hide' : 'View'}</span>
                 </Button>
               </div>
             </div>
@@ -4039,13 +4162,50 @@ function KYCSection() {
           </div>
 
           <Tabs value={activeKycTab} onValueChange={setActiveKycTab}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basic">Basic ({getFilteredKycUsers(basicUsers, 'basic').length})</TabsTrigger>
-              <TabsTrigger value="pending">Pending ({getFilteredKycUsers(pendingKyc, 'pending').length})</TabsTrigger>
-              <TabsTrigger value="verified">Verified ({getFilteredKycUsers(verifiedKyc, 'verified').length})</TabsTrigger>
-              <TabsTrigger value="rejected">Rejected ({getFilteredKycUsers(rejectedKyc, 'rejected').length})</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended ({getFilteredKycUsers(suspendedUsers, 'suspended').length})</TabsTrigger>
-            </TabsList>
+            <div className="w-full">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 p-1 bg-gray-100 rounded-lg">
+                <TabsTrigger 
+                  value="basic" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Basic</span>
+                  <span className="sm:hidden">Basic</span>
+                  <span className="ml-1 bg-gray-100 text-gray-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(basicUsers, 'basic').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pending" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Pending</span>
+                  <span className="sm:hidden">Pending</span>
+                  <span className="ml-1 bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(pendingKyc, 'pending').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="verified" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Verified</span>
+                  <span className="sm:hidden">Verified</span>
+                  <span className="ml-1 bg-green-100 text-green-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(verifiedKyc, 'verified').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="rejected" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Rejected</span>
+                  <span className="sm:hidden">Rejected</span>
+                  <span className="ml-1 bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(rejectedKyc, 'rejected').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="suspended" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Suspended</span>
+                  <span className="sm:hidden">Suspended</span>
+                  <span className="ml-1 bg-orange-100 text-orange-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(suspendedUsers, 'suspended').length}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="basic" className="mt-4">
               {(() => {
@@ -4526,56 +4686,79 @@ function CampaignsSection() {
         <p className="text-center text-gray-500 py-8">No campaigns found</p>
       ) : (
         campaigns.slice(0, 10).map((campaign: any) => (
-          <div key={campaign.id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h4 className="font-medium">{campaign.title}</h4>
+          <div key={campaign.id} className="border rounded-lg p-3 md:p-4">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-1 md:gap-3 mb-2">
+                  <h4 className="font-medium text-sm md:text-base truncate">{campaign.title}</h4>
                   {campaign.campaignDisplayId && (
-                    <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                      <span className="font-mono" data-testid={`campaign-display-id-${campaign.id}`}>
+                    <div className="bg-blue-100 text-blue-800 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-xs font-medium">
+                      <span className="font-mono text-xs" data-testid={`campaign-display-id-${campaign.id}`}>
                         {campaign.campaignDisplayId}
                       </span>
                     </div>
                   )}
                   {campaign.claimedBy && (
-                    <div className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium border border-gray-300">
+                    <div className="bg-gray-100 text-gray-700 px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-medium border border-gray-300">
                       <span className="flex items-center gap-1">
-                        <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-                        CLAIMED by {campaign.claimedBy}
+                        <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-gray-500 rounded-full"></span>
+                        <span className="hidden sm:inline">CLAIMED by {campaign.claimedBy}</span>
+                        <span className="sm:hidden">{campaign.claimedBy}</span>
                       </span>
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{campaign.description?.substring(0, 100)}...</p>
-                <div className="flex items-center gap-4 text-sm">
+                <p className="text-xs md:text-sm text-gray-600 mb-2 line-clamp-2">{campaign.description?.substring(0, 100)}...</p>
+                <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm">
                   <span>Goal: ₱{campaign.goalAmount?.toLocaleString() || '0'}</span>
                   <span>Current: ₱{campaign.currentAmount?.toLocaleString() || '0'}</span>
-                  <Badge variant="outline">{campaign.category || 'General'}</Badge>
+                  <Badge variant="outline" className="text-xs">{campaign.category || 'General'}</Badge>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 ml-4">
+              <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
                 {showClaimButton && !campaign.claimedBy && !claimedCampaigns.includes(campaign.id) && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-1 md:gap-2">
                     <Button 
                       size="sm" 
                       variant="default"
+                      className="text-xs px-2 md:px-3"
                       onClick={() => handleClaimCampaign(campaign.id)}
                       disabled={claimCampaignMutation.isPending}
                       data-testid={`button-claim-campaign-${campaign.id}`}
                     >
-                      {claimCampaignMutation.isPending ? "Claiming..." : "CLAIM"}
+                      {claimCampaignMutation.isPending ? (
+                        <>
+                          <span className="hidden sm:inline">Claiming...</span>
+                          <span className="sm:hidden">...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="hidden sm:inline">CLAIM</span>
+                          <span className="sm:hidden">C</span>
+                        </>
+                      )}
                     </Button>
                     {((user as any)?.isAdmin || (user as any)?.isManager) && (
                       <Button 
                         size="sm" 
                         variant="outline"
+                        className="text-xs px-2 md:px-3"
                         onClick={() => handleAssignCampaign(campaign.id)}
                         disabled={assignCampaignMutation.isPending}
                         data-testid={`button-assign-campaign-${campaign.id}`}
                       >
                         <UserPlus className="h-3 w-3 mr-1" />
-                        {assignCampaignMutation.isPending ? "Assigning..." : "Assign"}
+                        {assignCampaignMutation.isPending ? (
+                          <>
+                            <span className="hidden sm:inline">Assigning...</span>
+                            <span className="sm:hidden">...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="hidden sm:inline">Assign</span>
+                            <span className="sm:hidden">A</span>
+                          </>
+                        )}
                       </Button>
                     )}
                   </div>
@@ -4733,14 +4916,58 @@ function CampaignsSection() {
           </div>
 
           <Tabs value={activeCampaignTab} onValueChange={setActiveCampaignTab}>
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="requests">Pending ({getFilteredCampaigns(pendingCampaigns, 'pending').length})</TabsTrigger>
-              <TabsTrigger value="active">Active ({getFilteredCampaigns(activeCampaigns, 'active').length})</TabsTrigger>
-              <TabsTrigger value="in-progress">In Progress ({getFilteredCampaigns(inProgressCampaigns, 'in-progress').length})</TabsTrigger>
-              <TabsTrigger value="completed">Completed ({getFilteredCampaigns(completedCampaigns, 'completed').length})</TabsTrigger>
-              <TabsTrigger value="rejected">Rejected ({getFilteredCampaigns(rejectedCampaigns, 'rejected').length})</TabsTrigger>
-              <TabsTrigger value="closed">Closed ({getFilteredCampaigns(closedCampaigns, 'closed').length})</TabsTrigger>
-            </TabsList>
+            <div className="w-full">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1 p-1 bg-gray-100 rounded-lg">
+                <TabsTrigger 
+                  value="requests" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Pending</span>
+                  <span className="sm:hidden">Pending</span>
+                  <span className="ml-1 bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredCampaigns(pendingCampaigns, 'pending').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="active" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Active</span>
+                  <span className="sm:hidden">Active</span>
+                  <span className="ml-1 bg-green-100 text-green-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredCampaigns(activeCampaigns, 'active').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="in-progress" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">In Progress</span>
+                  <span className="sm:hidden">Progress</span>
+                  <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredCampaigns(inProgressCampaigns, 'in-progress').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Completed</span>
+                  <span className="sm:hidden">Done</span>
+                  <span className="ml-1 bg-purple-100 text-purple-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredCampaigns(completedCampaigns, 'completed').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="rejected" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Rejected</span>
+                  <span className="sm:hidden">Rejected</span>
+                  <span className="ml-1 bg-red-100 text-red-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredCampaigns(rejectedCampaigns, 'rejected').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="closed" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Closed</span>
+                  <span className="sm:hidden">Closed</span>
+                  <span className="ml-1 bg-gray-100 text-gray-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredCampaigns(closedCampaigns, 'closed').length}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="requests" className="mt-4">
               {(() => {
@@ -8955,20 +9182,20 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
                   {isWorkspaceExpanded && (
                     <div className="ml-6 space-y-1">
                       {workspaceItems.map((item) => {
-                        const IconComponent = item.icon;
+            const IconComponent = item.icon;
                         const isActive = activeTab === item.id;
-                        return (
-                          <button
-                            key={item.id}
+            return (
+              <button
+                key={item.id}
                             onClick={(e) => {
                               e.stopPropagation();
-                              setActiveTab(item.id);
+                  setActiveTab(item.id);
                               setIsMobileSidebarOpen(false);
-                              const params = new URLSearchParams(window.location.search);
-                              params.set('tab', item.id);
-                              window.history.replaceState({}, '', `/admin?${params.toString()}`);
-                            }}
-                            className={`${
+                  const params = new URLSearchParams(window.location.search);
+                  params.set('tab', item.id);
+                  window.history.replaceState({}, '', `/admin?${params.toString()}`);
+                }}
+                className={`${
                               isActive
                                 ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border-r-2 border-indigo-500'
                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -8983,9 +9210,9 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
                               <IconComponent className="h-3.5 w-3.5" />
                             </div>
                             <span className="font-medium">{item.label}</span>
-                          </button>
-                        );
-                      })}
+              </button>
+            );
+          })}
                     </div>
                   )}
                 </div>
@@ -9029,10 +9256,10 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
               <div className="p-4 border-t border-gray-100">
                 <div className="text-xs text-gray-500 text-center">
                   VeriFund Admin Panel
-                </div>
-              </div>
             </div>
           </div>
+        </div>
+            </div>
         </div>
       )}
 

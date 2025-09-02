@@ -89,7 +89,7 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
                 alt="VeriFund Logo" 
                 className="w-8 h-8 object-contain"
               />
-              <span className="text-2xl font-bold text-primary">VeriFund</span>
+              <span className="text-2xl font-bold text-gray-600">VeriFund</span>
             </Link>
             <div className="hidden md:block ml-10">
               <div className="flex items-baseline space-x-4">
