@@ -283,17 +283,114 @@ function CampaignVolunteerCard({ campaign }: { campaign: any }) {
     applyMutation.mutate(applicationData);
   };
 
+  // Helper function to normalize image URL
+  function normalizeImageUrl(raw?: string | null): string | undefined {
+    if (!raw) return undefined;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    // Tolerate missing leading slash
+    if (raw.startsWith('api/upload')) raw = '/' + raw;
+    if (raw.startsWith('objects/')) raw = '/' + raw;
+    // If path includes bucket prefix, strip it once
+    if (/^verifund-assets\//i.test(raw)) {
+      raw = raw.replace(/^verifund-assets\//i, '');
+    }
+    // If it's our upload URL, extract objectPath and convert to public URL
+    if (raw.startsWith('/api/upload')) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        const objectPath = u.searchParams.get('objectPath');
+        if (objectPath) {
+          const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+          const url = import.meta.env.VITE_SUPABASE_URL;
+          if (url) {
+            const path = objectPath.replace(/^\/+/, '');
+            return `${url}/storage/v1/object/public/${bucket}/${path}`;
+          }
+        }
+      } catch {}
+    }
+    // If it's an objects path, treat the rest as objectPath
+    if (raw.startsWith('/objects/')) {
+      const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (url) {
+        const path = raw.replace(/^\/objects\//, '').replace(/^\/+/, '');
+        return `${url}/storage/v1/object/public/${bucket}/${path}`;
+      }
+    }
+    // If it's a public-objects path, keep it as-is (server proxy route)
+    if (raw.startsWith('/public-objects/')) {
+      return raw; // Keep the original URL for server proxy handling
+    }
+    // If it's a public path, convert to Supabase URL
+    if (/^(public|evidence|profiles)\//i.test(raw)) {
+      const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (url) {
+        const path = raw.replace(/^\/+/, '');
+        return `${url}/storage/v1/object/public/${bucket}/${path}`;
+      }
+    }
+    return raw;
+  }
+
+  // Category fallback images
+  const categoryImages: { [key: string]: string } = {
+    emergency: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    education: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    healthcare: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    community: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    environment: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+  };
+
+  // Extract campaign image
+  let imageUrlRaw = campaign.images ? 
+    (campaign.images.startsWith('[') ? 
+      ((): string | undefined => { try { const arr = JSON.parse(campaign.images); return Array.isArray(arr) ? arr.find((x: any) => !!x) : undefined; } catch { return undefined; } })() : 
+      (campaign.images.includes(',') ? 
+        campaign.images.split(',').map((s: string) => s.trim()).find(Boolean) : 
+        campaign.images
+      )
+    ) : 
+    undefined;
+  if (!imageUrlRaw) {
+    imageUrlRaw = categoryImages[campaign.category as keyof typeof categoryImages];
+  }
+  const fallbackImage = categoryImages[campaign.category as keyof typeof categoryImages] || 'https://images.unsplash.com/photo-1526948128573-703ee1aeb6fa?auto=format&fit=crop&w=800&h=400&q=60';
+  const imageUrl = normalizeImageUrl(imageUrlRaw) || fallbackImage;
+
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow overflow-hidden">
+      {/* Campaign Image */}
+      <div className="relative h-48 w-full overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={campaign.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback to category image if campaign image fails to load
+            (e.currentTarget as HTMLImageElement).src = categoryImages[campaign.category] || categoryImages.community;
+          }}
+        />
+        {/* Category Badge Overlay */}
+        <div className="absolute top-3 left-3">
+          <Badge variant="secondary" className="bg-white/90 text-gray-800 backdrop-blur-sm">
+            {campaign.category}
+          </Badge>
+        </div>
+      </div>
+      
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg line-clamp-2 mb-2" data-testid={`text-campaign-title-${campaign.id}`}>
               {campaign.title}
             </CardTitle>
-            <Badge variant="secondary" className="mb-2">
-              {campaign.category}
-            </Badge>
+            {!campaign.imageUrl && (
+              <Badge variant="secondary" className="mb-2">
+                {campaign.category}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -320,14 +417,14 @@ function CampaignVolunteerCard({ campaign }: { campaign: any }) {
         </div>
 
         <div className="pt-4 border-t">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             {/* Apply Button */}
             {!isFullyBooked ? (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="flex-1 text-xs" data-testid={`button-apply-volunteer-${campaign.id}`}>
-                    <UserPlus className="w-3 h-3 mr-1" />
-                    APPLY TO VOLUNTEER
+                  <Button className="flex-1 text-xs min-w-0" data-testid={`button-apply-volunteer-${campaign.id}`}>
+                    <UserPlus className="w-3 h-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">APPLY TO VOLUNTEER</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
@@ -380,21 +477,21 @@ function CampaignVolunteerCard({ campaign }: { campaign: any }) {
                 </DialogContent>
               </Dialog>
             ) : (
-              <Button disabled className="flex-1 text-xs">
-                <XCircle className="w-3 h-3 mr-1" />
-                FULLY BOOKED
+              <Button disabled className="flex-1 text-xs min-w-0">
+                <XCircle className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">FULLY BOOKED</span>
               </Button>
             )}
 
             {/* View Campaign Details Button */}
             <Button 
               variant="outline" 
-              className="flex-1 text-xs"
+              className="flex-1 text-xs min-w-0"
               onClick={() => setLocation(`/campaigns/${campaign.id}`)}
               data-testid={`button-view-campaign-details-${campaign.id}`}
             >
-              <Eye className="w-3 h-3 mr-1" />
-              VIEW CAMPAIGN DETAILS
+              <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
+              <span className="truncate">VIEW CAMPAIGN DETAILS</span>
             </Button>
           </div>
         </div>
@@ -520,15 +617,15 @@ function VolunteerOpportunityCard({ opportunity }: { opportunity: VolunteerOppor
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="flex-1 text-xs" 
+                className="flex-1 text-xs min-w-0" 
                 disabled={isFullyBooked || applyMutation.isPending}
                 data-testid={`button-apply-${opportunity.id}`}
               >
-                {isFullyBooked ? "Fully Booked" : "Apply to Volunteer"}
+                <span className="truncate">{isFullyBooked ? "Fully Booked" : "Apply to Volunteer"}</span>
               </Button>
             </DialogTrigger>
           <DialogContent className="max-w-md">
@@ -584,12 +681,12 @@ function VolunteerOpportunityCard({ opportunity }: { opportunity: VolunteerOppor
         {/* Campaign Details Dialog */}
         <Button 
           variant="outline" 
-          className="flex-1 text-xs"
+          className="flex-1 text-xs min-w-0"
           onClick={() => setLocation(`/campaigns/${opportunity.campaignId}`)}
           data-testid={`button-view-campaign-details-${opportunity.id}`}
         >
-          <Eye className="w-3 h-3 mr-1" />
-          VIEW CAMPAIGN DETAILS
+          <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
+          <span className="truncate">VIEW CAMPAIGN DETAILS</span>
         </Button>
         </div>
       </CardContent>
@@ -690,23 +787,127 @@ function InactiveCampaignCard({ campaign }: { campaign: any }) {
   const totalSlots = campaign.volunteerSlots || 0;
   const filledSlots = campaign.volunteerSlotsFilledCount || 0;
 
+  // Helper function to normalize image URL
+  function normalizeImageUrl(raw?: string | null): string | undefined {
+    if (!raw) return undefined;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    // Tolerate missing leading slash
+    if (raw.startsWith('api/upload')) raw = '/' + raw;
+    if (raw.startsWith('objects/')) raw = '/' + raw;
+    // If path includes bucket prefix, strip it once
+    if (/^verifund-assets\//i.test(raw)) {
+      raw = raw.replace(/^verifund-assets\//i, '');
+    }
+    // If it's our upload URL, extract objectPath and convert to public URL
+    if (raw.startsWith('/api/upload')) {
+      try {
+        const u = new URL(raw, window.location.origin);
+        const objectPath = u.searchParams.get('objectPath');
+        if (objectPath) {
+          const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+          const url = import.meta.env.VITE_SUPABASE_URL;
+          if (url) {
+            const path = objectPath.replace(/^\/+/, '');
+            return `${url}/storage/v1/object/public/${bucket}/${path}`;
+          }
+        }
+      } catch {}
+    }
+    // If it's an objects path, treat the rest as objectPath
+    if (raw.startsWith('/objects/')) {
+      const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (url) {
+        const path = raw.replace(/^\/objects\//, '').replace(/^\/+/, '');
+        return `${url}/storage/v1/object/public/${bucket}/${path}`;
+      }
+    }
+    // If it's a public-objects path, keep it as-is (server proxy route)
+    if (raw.startsWith('/public-objects/')) {
+      return raw; // Keep the original URL for server proxy handling
+    }
+    // If it's a public path, convert to Supabase URL
+    if (/^(public|evidence|profiles)\//i.test(raw)) {
+      const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      if (url) {
+        const path = raw.replace(/^\/+/, '');
+        return `${url}/storage/v1/object/public/${bucket}/${path}`;
+      }
+    }
+    return raw;
+  }
+
+  // Category fallback images
+  const categoryImages: { [key: string]: string } = {
+    emergency: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    education: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    healthcare: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    community: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+    environment: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+  };
+
+  // Extract campaign image
+  let imageUrlRaw = campaign.images ? 
+    (campaign.images.startsWith('[') ? 
+      ((): string | undefined => { try { const arr = JSON.parse(campaign.images); return Array.isArray(arr) ? arr.find((x: any) => !!x) : undefined; } catch { return undefined; } })() : 
+      (campaign.images.includes(',') ? 
+        campaign.images.split(',').map((s: string) => s.trim()).find(Boolean) : 
+        campaign.images
+      )
+    ) : 
+    undefined;
+  if (!imageUrlRaw) {
+    imageUrlRaw = categoryImages[campaign.category as keyof typeof categoryImages];
+  }
+  const fallbackImage = categoryImages[campaign.category as keyof typeof categoryImages] || 'https://images.unsplash.com/photo-1526948128573-703ee1aeb6fa?auto=format&fit=crop&w=800&h=400&q=60';
+  const imageUrl = normalizeImageUrl(imageUrlRaw) || fallbackImage;
+
   return (
-    <Card className="hover:shadow-lg transition-shadow opacity-75">
+    <Card className="hover:shadow-lg transition-shadow opacity-75 overflow-hidden">
+      {/* Campaign Image */}
+      <div className="relative h-48 w-full overflow-hidden">
+        <img
+          src={imageUrl}
+          alt={campaign.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback to category image if campaign image fails to load
+            (e.currentTarget as HTMLImageElement).src = categoryImages[campaign.category] || categoryImages.community;
+          }}
+        />
+        {/* Category Badge Overlay */}
+        <div className="absolute top-3 left-3">
+          <Badge variant="secondary" className="bg-white/90 text-gray-800 backdrop-blur-sm">
+            {campaign.category}
+          </Badge>
+        </div>
+        {/* Status Badge Overlay */}
+        <div className="absolute top-3 right-3">
+          <Badge className={`${getStatusColor(campaign.status)} backdrop-blur-sm`}>
+            {getStatusIcon(campaign.status)}
+            <span className="ml-1 capitalize">{campaign.status}</span>
+          </Badge>
+        </div>
+      </div>
+      
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg line-clamp-2 mb-2" data-testid={`text-inactive-campaign-title-${campaign.id}`}>
               {campaign.title}
             </CardTitle>
-            <div className="flex gap-2 mb-2">
-              <Badge variant="secondary">
-                {campaign.category}
-              </Badge>
-              <Badge className={getStatusColor(campaign.status)}>
-                {getStatusIcon(campaign.status)}
-                <span className="ml-1 capitalize">{campaign.status}</span>
-              </Badge>
-            </div>
+            {!campaign.imageUrl && (
+              <div className="flex gap-2 mb-2">
+                <Badge variant="secondary">
+                  {campaign.category}
+                </Badge>
+                <Badge className={getStatusColor(campaign.status)}>
+                  {getStatusIcon(campaign.status)}
+                  <span className="ml-1 capitalize">{campaign.status}</span>
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -772,7 +973,7 @@ function CompletedOpportunityCard({ opportunity }: { opportunity: any }) {
   const { data: campaignDetails } = useQuery({
     queryKey: ["/api/campaigns", opportunity.campaignId],
     enabled: showCampaignDialog,
-  });
+  }) as { data: any | undefined };
 
   return (
     <Card className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
@@ -888,7 +1089,7 @@ function ApplicationCard({ application }: { application: VolunteerApplication })
   const { data: campaignDetails } = useQuery({
     queryKey: ["/api/campaigns", application.campaignId],
     enabled: showCampaignDialog,
-  });
+  }) as { data: any | undefined };
 
   return (
     <Card className="hover:shadow-md transition-shadow">

@@ -48,8 +48,8 @@ if (-not (Test-Path ".env")) {
 
 # Check if Docker is available for optional containerized setup
 try {
-    $dockerVersion = docker --version
-    $dockerComposeVersion = docker-compose --version
+    docker --version | Out-Null
+    docker-compose --version | Out-Null
     Write-Host "🐳 Docker detected - you can use containerized development:" -ForegroundColor Green
     Write-Host "   docker-compose up -d    # Start PostgreSQL + Redis" -ForegroundColor White
     Write-Host "   docker-compose up app   # Start app with hot reload" -ForegroundColor White
@@ -60,7 +60,7 @@ try {
 
 # Check if PostgreSQL is available locally
 try {
-    $psqlVersion = psql --version
+    psql --version | Out-Null
     Write-Host "🐘 PostgreSQL detected locally" -ForegroundColor Green
     Write-Host "   You can create a local database or use Supabase" -ForegroundColor White
 } catch {

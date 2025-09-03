@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -152,12 +153,7 @@ const categoryImages = {
 
 export default function CampaignDetail() {
   const [match, params] = useRoute("/campaigns/:id");
-  
-  if (!match || !params?.id) {
-    return <div>Campaign not found</div>;
-  }
-
-  const campaignId = params.id;
+  const campaignId = params?.id;
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
@@ -1045,6 +1041,11 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
     },
   });
 
+  // Early return check after all hooks are declared
+  if (!match || !campaignId) {
+    return <div>Campaign not found</div>;
+  }
+
   const openVolunteerDetails = (volunteer: any) => {
     setSelectedVolunteer(volunteer);
     setIsVolunteerDetailsModalOpen(true);
@@ -1218,6 +1219,10 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
         return `${url}/storage/v1/object/public/${bucket}/${path}`;
       }
     }
+    // If it's a public-objects path, keep it as-is (server proxy route)
+    if (raw.startsWith('/public-objects/')) {
+      return raw; // Keep the original URL for server proxy handling
+    }
     if (/^(public|evidence|profiles)\//i.test(raw)) {
       const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
       const url = import.meta.env.VITE_SUPABASE_URL;
@@ -1250,7 +1255,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
         {/* Campaign Header */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
           <img 
@@ -1262,61 +1267,71 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
           />
           
           <div className="p-8">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Badge 
-                    className={`text-sm px-3 py-1 ${categoryColors[campaign.category as keyof typeof categoryColors]}`}
-                    data-testid="campaign-category"
-                  >
-                    {campaign?.category ? campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1) : 'Unknown'}
-                  </Badge>
-                  {campaign.tesVerified && (
-                    <div className="flex items-center text-secondary">
-                      <Shield className="w-4 h-4 mr-1" />
-                      <span className="text-sm font-medium">TES Verified</span>
-                    </div>
-                  )}
-                  <Badge 
-                    variant={campaign.status === "active" ? "default" : "secondary"}
-                    data-testid="campaign-status"
-                  >
-                    {campaign.status}
-                  </Badge>
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              {/* Badges */}
+              <Badge 
+                className={`text-xs px-2 py-1 ${categoryColors[campaign.category as keyof typeof categoryColors]}`}
+                data-testid="campaign-category"
+              >
+                {campaign?.category ? campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1) : 'Unknown'}
+              </Badge>
+              {campaign.tesVerified && (
+                <div className="flex items-center text-secondary">
+                  <Shield className="w-3 h-3 mr-1" />
+                  <span className="text-xs font-medium">TES Verified</span>
                 </div>
-              </div>
+              )}
+              <Badge 
+                variant={campaign.status === "active" ? "default" : "secondary"}
+                className="text-xs px-2 py-1"
+                data-testid="campaign-status"
+              >
+                {campaign.status}
+              </Badge>
 
-              {/* Action Buttons - Right Side - Only show for non-creators */}
+              {/* Action Buttons - On the far right edge */}
               {creatorProfileData && isAuthenticated && (user as any)?.id !== campaign?.creatorId && (
-                <div className="flex gap-2">
+                <div className="ml-auto flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="text-xs px-2 py-1 h-6 border-gray-300"
                     data-testid="button-view-creator"
                     onClick={handleViewCreatorProfile}
                   >
                     View Creator Profile
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50"
-                    data-testid="button-report-campaign"
-                    onClick={() => setShowFraudReportModal(true)}
-                  >
-                    <AlertTriangle className="w-4 h-4 mr-1" />
-                    Report Campaign
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                    data-testid="button-report-creator"
-                    onClick={() => setShowCreatorFraudReportModal(true)}
-                  >
-                    <Flag className="w-4 h-4 mr-1" />
-                    Report Creator
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs px-2 py-1 h-6 text-red-600 border-red-200 hover:bg-red-50"
+                        data-testid="button-report"
+                      >
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Report
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setShowFraudReportModal(true)}
+                        className="text-red-600 focus:text-red-600"
+                        data-testid="dropdown-report-campaign"
+                      >
+                        <AlertTriangle className="w-3 h-3 mr-2" />
+                        Report Campaign
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setShowCreatorFraudReportModal(true)}
+                        className="text-orange-600 focus:text-orange-600"
+                        data-testid="dropdown-report-creator"
+                      >
+                        <Flag className="w-3 h-3 mr-2" />
+                        Report Creator
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               )}
             </div>
@@ -1685,7 +1700,7 @@ onTipVolunteers={() => {
               })()}
                   isLoadingVolunteers={isLoadingVolunteers}
                 />                {/* Event Details Section */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="bg-gray-50 rounded-lg p-4 mb-4 mt-8">
                   <div className="space-y-4">
                     
                     {/* Campaign Reference ID */}
@@ -2257,7 +2272,7 @@ onTipVolunteers={() => {
       </div>
 
       {/* Campaign Pool - Two Column Layout */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-4">
         
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

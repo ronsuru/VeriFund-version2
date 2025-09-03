@@ -126,7 +126,7 @@ export default function MyProfile() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isSupportTicketModalOpen, setIsSupportTicketModalOpen] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [showCropper, setShowCropper] = useState(false);
+const [showCropper, setShowCropper] = useState(false);
   const [pfpCacheBust, setPfpCacheBust] = useState<number>(0);
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameValue, setNicknameValue] = useState('');  // Tip claiming form setup
@@ -481,7 +481,7 @@ export default function MyProfile() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 mt-24">
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 mt-24">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           <p className="text-gray-600 mt-2">Manage your account information and track your VeriFund journey</p>
@@ -512,7 +512,8 @@ export default function MyProfile() {
                       aria-label="Upload profile picture"
                     >
                       <Camera className="w-6 h-6 text-white" />
-                    </button>                  </div>
+                    </button>
+                  </div>
                   {(user as any)?.kycStatus === "verified" && (
                     <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-2 border-2 border-white shadow-lg">
                       <Shield className="w-4 h-4 text-white fill-current" />
@@ -622,134 +623,50 @@ export default function MyProfile() {
                 {(user as any)?.kycStatus !== "verified" && (() => {
                   const buttonState = getVerificationButtonState();
                   return (
-                    <Button 
+                  <Button 
                       className={buttonState.className}
                       onClick={() => !buttonState.disabled && (window.location.href = "/profile-verification")}
                       disabled={buttonState.disabled}
-                    >
+                  >
                       {buttonState.text}
-                    </Button>
+                  </Button>
                   );
                 })()}
               </CardContent>
             </Card>
 
-            {/* User Scores Section */}
+            {/* Milestones Section */}
             <Card>
               <CardHeader>
-<div className="flex items-center justify-between">
-                  <div>
                     <CardTitle className="flex items-center space-x-2">
                       <Award className="w-5 h-5" />
-                      <span>My Scores</span>
+                  <span>Milestones</span>
                     </CardTitle>
-                    <p className="text-xs text-muted-foreground">
-                      Your performance metrics and community ratings
-                    </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className={`flex items-center space-x-2 p-2 rounded ${(user as any)?.kycStatus === "verified" ? "bg-green-50" : "bg-gray-50"}`}>
+                  <CheckCircle className={`w-4 h-4 ${(user as any)?.kycStatus === "verified" ? "text-green-600" : "text-gray-400"}`} />
+                  <span className={`text-sm ${(user as any)?.kycStatus === "verified" ? "text-green-800" : "text-gray-600"}`}>
+                    Identity Verified
+                  </span>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-                      toast({
-                        title: "Scores Refreshed",
-                        description: "Your scores have been updated with the latest data.",
-                      });
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh Scores
-                  </Button>
-                </div>              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Credit Score */}
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-blue-600" />
+                <div className={`flex items-center space-x-2 p-2 rounded ${(userCampaigns as any[]).length > 0 ? "bg-green-50" : "bg-gray-50"}`}>
+                  <Target className={`w-4 h-4 ${(userCampaigns as any[]).length > 0 ? "text-green-600" : "text-gray-400"}`} />
+                  <span className={`text-sm ${(userCampaigns as any[]).length > 0 ? "text-green-800" : "text-gray-600"}`}>
+                    First Campaign Created
+                  </span>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-blue-900">Credit Score</h3>
-                      <p className="text-xs text-blue-700">Document quality rating</p>
+                <div className={`flex items-center space-x-2 p-2 rounded ${(userTransactions as any[]).length > 0 ? "bg-green-50" : "bg-gray-50"}`}>
+                  <Wallet className={`w-4 h-4 ${(userTransactions as any[]).length > 0 ? "text-green-600" : "text-gray-400"}`} />
+                  <span className={`text-sm ${(userTransactions as any[]).length > 0 ? "text-green-800" : "text-gray-600"}`}>
+                    First Contribution Made
+                  </span>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600" data-testid="text-credit-score">
-                      {creditScoreData?.averageScore ? `${Math.round(creditScoreData.averageScore)}%` : '0%'}
-                    </div>
-                    <div className="text-xs text-blue-600">Average</div>
-                  </div>
-                </div>
-
-                {/* Social Score */}
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-green-900">Social Score</h3>
-                      <p className="text-xs text-green-700">Community safety points</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600" data-testid="text-social-score">
-                      {(user as any)?.socialScore || 0}
-                    </div>
-                    <div className="text-xs text-green-600">Points</div>
-                  </div>
-                </div>
-
-                {/* Average Star Rating */}
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                      <Award className="w-5 h-5 text-yellow-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-yellow-900">Creator Rating</h3>
-                      <p className="text-xs text-yellow-700">Community star rating</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center space-x-1 justify-end">
-                      <div className="text-2xl font-bold text-yellow-600" data-testid="text-creator-rating">
-                        {averageRatingData?.averageRating && averageRatingData.averageRating > 0 
-                          ? averageRatingData.averageRating.toFixed(1) 
-                          : '0'}
-                      </div>
-                    </div>
-                    <div className="text-xs text-yellow-600">
-                      {averageRatingData?.totalRatings ? `${averageRatingData.totalRatings} ratings` : '0 ratings'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reliability Score */}
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-purple-900">Reliability Score</h3>
-                      <p className="text-xs text-purple-700">Volunteer safety rating</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center space-x-1 justify-end">
-                      <div className="text-2xl font-bold text-purple-600" data-testid="text-reliability-score">
-                        {(user as any)?.reliabilityScore && parseFloat((user as any).reliabilityScore.toString()) > 0 
-                          ? parseFloat((user as any).reliabilityScore.toString()).toFixed(1) 
-                          : '0.0'}
-                      </div>
-                    </div>
-                    <div className="text-xs text-purple-600">
-                      {(user as any)?.reliabilityRatingsCount ? `${(user as any).reliabilityRatingsCount} ratings` : '0 ratings'}
-                    </div>
-                  </div>
+                <div className={`flex items-center space-x-2 p-2 rounded ${successfulCampaigns > 0 ? "bg-green-50" : "bg-gray-50"}`}>
+                  <Award className={`w-4 h-4 ${successfulCampaigns > 0 ? "text-green-600" : "text-gray-400"}`} />
+                  <span className={`text-sm ${successfulCampaigns > 0 ? "text-green-800" : "text-gray-600"}`}>
+                    Successful Campaign
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -961,25 +878,25 @@ export default function MyProfile() {
                         </p>
                         {!isRejected && (
                           <ul className={`text-sm space-y-1 ${isPending ? 'text-yellow-700' : 'text-blue-700'}`}>
-                            <li>• Create fundraising campaigns</li>
-                            <li>• Withdraw funds to your bank account</li>
-                            <li>• Access premium analytics</li>
-                            <li>• Build trust with contributors</li>
-                          </ul>
+                        <li>• Create fundraising campaigns</li>
+                        <li>• Withdraw funds to your bank account</li>
+                        <li>• Access premium analytics</li>
+                        <li>• Build trust with contributors</li>
+                      </ul>
                         )}
                         {isRejected && (user as any)?.rejectionReason && (
                           <div className="mb-3 p-2 bg-red-100 rounded text-sm text-red-800">
                             <strong>Rejection Reason:</strong> {(user as any).rejectionReason}
                           </div>
                         )}
-                        <Button 
+                      <Button 
                           className={`mt-3 ${buttonState.className}`}
                           onClick={() => !buttonState.disabled && (window.location.href = "/profile-verification")}
                           disabled={buttonState.disabled}
-                        >
+                      >
                           {buttonState.text}
-                        </Button>
-                      </div>
+                      </Button>
+                    </div>
                     );
                   })()}
                 </div>
@@ -1180,19 +1097,19 @@ export default function MyProfile() {
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                       <div className="text-2xl font-bold text-blue-600">{(userCampaigns as any[]).length}</div>
                       <div className="text-sm text-blue-700">Campaigns Created</div>
-                    </div>
+                  </div>
                     <div className="p-4 bg-green-50 rounded-xl border border-green-100">
                       <div className="text-2xl font-bold text-green-600">₱{totalRaised.toLocaleString()}</div>
                       <div className="text-sm text-green-700">Total Raised</div>
-                    </div>
+                  </div>
                     <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
                       <div className="text-2xl font-bold text-purple-600">₱{totalContributed.toLocaleString()}</div>
                       <div className="text-sm text-purple-700">Total Contributed</div>
-                    </div>
+                  </div>
                     <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
                       <div className="text-2xl font-bold text-yellow-600">{successfulCampaigns}</div>
                       <div className="text-sm text-yellow-700">Successful Campaigns</div>
-                    </div>
+                  </div>
                     <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 col-span-2 xl:col-span-1">
                       <div className="text-2xl font-bold text-gray-600">{(userTransactions as any[]).length}</div>
                       <div className="text-sm text-gray-700">Total Transactions</div>
@@ -1201,38 +1118,116 @@ export default function MyProfile() {
                 </CardContent>
               </Card>
 
-              {/* Milestones */}
+              {/* User Scores Section */}
               <Card>
                 <CardHeader>
+<div className="flex items-center justify-between">
+                    <div>
                   <CardTitle className="flex items-center space-x-2">
                     <Award className="w-5 h-5" />
-                    <span>Milestones</span>
+                        <span>My Scores</span>
                   </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className={`flex items-center space-x-2 p-2 rounded ${(user as any)?.kycStatus === "verified" ? "bg-green-50" : "bg-gray-50"}`}>
-                    <CheckCircle className={`w-4 h-4 ${(user as any)?.kycStatus === "verified" ? "text-green-600" : "text-gray-400"}`} />
-                    <span className={`text-sm ${(user as any)?.kycStatus === "verified" ? "text-green-800" : "text-gray-600"}`}>
-                      Identity Verified
-                    </span>
+                      <p className="text-xs text-muted-foreground">
+                        Your performance metrics and community ratings
+                      </p>
                   </div>
-                  <div className={`flex items-center space-x-2 p-2 rounded ${(userCampaigns as any[]).length > 0 ? "bg-green-50" : "bg-gray-50"}`}>
-                    <Target className={`w-4 h-4 ${(userCampaigns as any[]).length > 0 ? "text-green-600" : "text-gray-400"}`} />
-                    <span className={`text-sm ${(userCampaigns as any[]).length > 0 ? "text-green-800" : "text-gray-600"}`}>
-                      First Campaign Created
-                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                        toast({
+                          title: "Scores Refreshed",
+                          description: "Your scores have been updated with the latest data.",
+                        });
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Refresh Scores
+                    </Button>
+                  </div>              </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                    {/* Credit Score */}
+                    <div className="flex flex-col items-center text-center p-6 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                        <TrendingUp className="w-8 h-8 text-blue-600" />
                   </div>
-                  <div className={`flex items-center space-x-2 p-2 rounded ${(userTransactions as any[]).length > 0 ? "bg-green-50" : "bg-gray-50"}`}>
-                    <Wallet className={`w-4 h-4 ${(userTransactions as any[]).length > 0 ? "text-green-600" : "text-gray-400"}`} />
-                    <span className={`text-sm ${(userTransactions as any[]).length > 0 ? "text-green-800" : "text-gray-600"}`}>
-                      First Contribution Made
-                    </span>
+                      <div>
+                        <h3 className="font-medium text-blue-900">Credit Score</h3>
+                        <p className="text-xs text-blue-700">Document quality rating</p>
                   </div>
-                  <div className={`flex items-center space-x-2 p-2 rounded ${successfulCampaigns > 0 ? "bg-green-50" : "bg-gray-50"}`}>
-                    <Award className={`w-4 h-4 ${successfulCampaigns > 0 ? "text-green-600" : "text-gray-400"}`} />
-                    <span className={`text-sm ${successfulCampaigns > 0 ? "text-green-800" : "text-gray-600"}`}>
-                      Successful Campaign
-                    </span>
+                      <div>
+                        <div className="text-3xl font-bold text-blue-600" data-testid="text-credit-score">
+                          {creditScoreData?.averageScore ? `${Math.round(creditScoreData.averageScore)}%` : '0%'}
+                        </div>
+                        <div className="text-xs text-blue-600">Average</div>
+                      </div>
+                    </div>
+
+                    {/* Social Score */}
+                    <div className="flex flex-col items-center text-center p-6 bg-green-50 rounded-lg border border-green-200 space-y-3">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                        <Users className="w-8 h-8 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-green-900">Social Score</h3>
+                        <p className="text-xs text-green-700">Community safety points</p>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-bold text-green-600" data-testid="text-social-score">
+                          {(user as any)?.socialScore || 0}
+                        </div>
+                        <div className="text-xs text-green-600">Points</div>
+                      </div>
+                    </div>
+
+                    {/* Average Star Rating */}
+                    <div className="flex flex-col items-center text-center p-6 bg-yellow-50 rounded-lg border border-yellow-200 space-y-3">
+                      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <Award className="w-8 h-8 text-yellow-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-yellow-900">Creator Rating</h3>
+                        <p className="text-xs text-yellow-700">Community star rating</p>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-bold text-yellow-600" data-testid="text-creator-rating">
+                          {averageRatingData?.averageRating && averageRatingData.averageRating > 0 
+                            ? averageRatingData.averageRating.toFixed(1) 
+                            : '0'}
+                        </div>
+                        <div className="text-xs text-yellow-600">
+                          {averageRatingData?.totalRatings > 0 
+                            ? `${averageRatingData.totalRatings} ratings` 
+                            : 'ratings'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reliability Score */}
+                    <div className="flex flex-col items-center text-center p-6 bg-purple-50 rounded-lg border border-purple-200 space-y-3">
+                      <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Shield className="w-8 h-8 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-purple-900">Reliability Score</h3>
+                        <p className="text-xs text-purple-700">Volunteer safety rating</p>
+                      </div>
+                      <div>
+                        <div className="text-3xl font-bold text-purple-600" data-testid="text-reliability-score">
+                          {(user as any)?.reliabilityScore && parseFloat((user as any).reliabilityScore.toString()) > 0 
+                            ? parseFloat((user as any).reliabilityScore.toString()).toFixed(1) 
+                            : '0.0'}
+                        </div>
+                        <div className="text-xs text-purple-600">
+                          {(user as any)?.reliabilityRatingsCount > 1 
+                            ? `${(user as any).reliabilityRatingsCount} ratings` 
+                            : 'ratings'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1516,7 +1511,7 @@ export default function MyProfile() {
 
       {/* Support Footer */}
       <footer className="bg-gray-900 text-white py-8 mt-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-3 flex items-center justify-center gap-2">
               <LifeBuoy className="w-5 h-5" />

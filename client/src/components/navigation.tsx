@@ -74,7 +74,7 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
 
   return (
 <nav className={`verifund-nav ${containerPositionClass} mx-auto z-50`}>
-      <div className="bg-card/95 backdrop-blur-sm shadow-lg rounded-2xl border border-border/50">        <div className="flex justify-between items-center h-16 px-6">
+      <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl border border-border/50">        <div className="flex justify-between items-center h-16 px-6">
           <div className="flex items-center">
             <Link 
               href={isAuthenticated && ((user as any)?.isAdmin || (user as any)?.isSupport) ? "/admin?tab=profile" : "/"} 
@@ -163,6 +163,18 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
                         {item.label}
                       </Link>
                     ))}
+
+                    {/* My Profile Link */}
+                    <Link 
+                      href="/my-profile"
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        location === "/my-profile"
+                          ? "text-primary bg-primary/10"
+                          : "text-gray-700 hover:text-primary"
+                      }`}
+                    >
+                      My Profile
+                    </Link>
                   </>
                 )}
                 
@@ -569,34 +581,34 @@ onClick={() => {
                         <span className="text-white text-xs">🎯</span>
                       </div>
                       <h3 className="font-semibold text-gray-900">My Opportunities</h3>
-                    </div>
+                  </div>
                     <div className="space-y-2">
-                      <Link 
-                        href="/browse-campaigns"
+                <Link 
+                  href="/browse-campaigns"
                         className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          location === "/browse-campaigns"
+                    location === "/browse-campaigns"
                             ? "bg-green-600 text-white shadow-lg"
                             : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                         <span className="text-lg">📋</span>
                         <span>Campaign Opportunities</span>
-                      </Link>
-                      <Link 
-                        href="/volunteer"
+                </Link>
+                <Link 
+                  href="/volunteer"
                         className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          location === "/volunteer"
+                    location === "/volunteer"
                             ? "bg-green-600 text-white shadow-lg"
                             : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                         <span className="text-lg">🤝</span>
                         <span>Volunteer Opportunities</span>
-                      </Link>
+                </Link>
                     </div>
-                  </div>
+              </div>
 
                   {/* My Campaigns Section */}
                   <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-2xl p-4 border border-purple-100">
@@ -605,33 +617,33 @@ onClick={() => {
                         <span className="text-white text-xs">🚀</span>
                       </div>
                       <h3 className="font-semibold text-gray-900">My Campaigns</h3>
-                    </div>
+              </div>
                     <div className="space-y-2">
-                      <Link 
-                        href="/campaigns"
+                <Link 
+                  href="/campaigns"
                         className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          location === "/campaigns"
+                    location === "/campaigns"
                             ? "bg-purple-600 text-white shadow-lg"
                             : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                         <span className="text-lg">📊</span>
                         <span>Campaign Overview</span>
-                      </Link>
-                      <Link 
-                        href="/volunteer-applications"
+                </Link>
+                <Link 
+                  href="/volunteer-applications"
                         className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          location === "/volunteer-applications"
+                    location === "/volunteer-applications"
                             ? "bg-purple-600 text-white shadow-lg"
                             : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                         <span className="text-lg">📝</span>
                         <span>Volunteer Applications</span>
-                      </Link>
-                    </div>
+                </Link>
+              </div>
                   </div>
 
 
@@ -809,8 +821,8 @@ onClick={() => {
                   <div className="bg-white/70 rounded-xl p-3 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span className="text-2xl font-bold text-gray-900">
-                        ₱{parseFloat((user as any).phpBalance || "0").toLocaleString()}
-                      </span>
+                      ₱{parseFloat((user as any).phpBalance || "0").toLocaleString()}
+                    </span>
                       <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">PHP</Badge>
                     </div>
                     <div className="text-sm text-gray-600">

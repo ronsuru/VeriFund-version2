@@ -44,6 +44,10 @@ function normalizeImageUrl(raw?: string | null): string | undefined {
       return `${url}/storage/v1/object/public/${bucket}/${path}`;
     }
   }
+  // If it's a public-objects path, keep it as-is (server proxy route)
+  if (raw.startsWith('/public-objects/')) {
+    return raw; // Keep the original URL for server proxy handling
+  }
   // Handle Supabase public subfolders like "public/", "evidence/", "profiles/"
   if (/^(public|evidence|profiles)\//i.test(raw)) {
     const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
