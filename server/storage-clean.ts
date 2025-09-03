@@ -379,45 +379,46 @@ class DatabaseStorage {
       isFirstMonth = daysSinceFirstCampaign < 30;
       
       if (isFirstMonth) {
-        // Still in first month - give 3 free slots regardless of credit score
-        maxAllowed = 3;
+        // Still in first month - give 10 free slots regardless of credit score
+        maxAllowed = 10;
         paidSlotsAvailable = 0;
         paidSlotPrice = 0;
       } else {
         // First month ended, apply credit score tiers
-        if (avgCreditScore >= 80) {
-          maxAllowed = 5; // 80-100%: 5 slots
+        if (avgCreditScore >= 81) {
+          maxAllowed = 25; // 81-100%: 25 slots
           paidSlotsAvailable = 0;
           paidSlotPrice = 0;
-        } else if (avgCreditScore >= 75) {
-          maxAllowed = 3; // 75-79%: 3 slots
+        } else if (avgCreditScore >= 66) {
+          maxAllowed = 20; // 66-80%: 20 slots
           paidSlotsAvailable = 0;
           paidSlotPrice = 0;
-        } else if (avgCreditScore >= 65) {
-          maxAllowed = 1; // 65-74%: 1 slot
+        } else if (avgCreditScore >= 51) {
+          maxAllowed = 15; // 51-65%: 15 slots
           paidSlotsAvailable = 0;
           paidSlotPrice = 0;
-        } else if (avgCreditScore >= 50) {
-          maxAllowed = 0; // 50-64%: 0 slots, but can buy up to 3
-          paidSlotsAvailable = 3;
-          paidSlotPrice = 9000;
-        } else if (avgCreditScore >= 35) {
-          maxAllowed = 0; // 35-49%: 0 slots, but can buy up to 2
-          paidSlotsAvailable = 2;
-          paidSlotPrice = 6000;
-        } else if (avgCreditScore >= 20) {
-          maxAllowed = 0; // 20-34%: 0 slots, but can buy 1
-          paidSlotsAvailable = 1;
-          paidSlotPrice = 3000;
+        } else if (avgCreditScore >= 36) {
+          maxAllowed = 10; // 36-50%: 10 slots
+          paidSlotsAvailable = 0;
+          paidSlotPrice = 0;
+        } else if (avgCreditScore >= 21) {
+          maxAllowed = 5; // 21-35%: 5 slots
+          paidSlotsAvailable = 0;
+          paidSlotPrice = 0;
+        } else if (avgCreditScore >= 0) {
+          maxAllowed = 3; // 0-20%: 3 slots
+          paidSlotsAvailable = 0;
+          paidSlotPrice = 0;
         } else {
-          maxAllowed = 0; // <20%: 0 slots, cannot buy
+          maxAllowed = 0; // <0%: 0 slots, cannot buy
           paidSlotsAvailable = 0;
           paidSlotPrice = 0;
         }
       }
     } else {
-      // No operational campaign yet - show 3 free slots but no countdown
+      // No operational campaign yet - show 10 free slots but no countdown
       isFirstMonth = true;
+      maxAllowed = 10;
       paidSlotsAvailable = 0;
       paidSlotPrice = 0;
     }

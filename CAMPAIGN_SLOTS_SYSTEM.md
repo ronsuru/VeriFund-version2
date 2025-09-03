@@ -6,7 +6,7 @@ The Campaign Slots System implements a tiered approach to campaign creation limi
 ## Features
 
 ### 1. First-Month Access (Onboarding Benefit)
-- **All new verified users** get **3 campaign slots** immediately upon sign-up
+- **All new verified users** get **10 campaign slots** immediately upon sign-up
 - These slots are valid only for the **first month** and can be used without restrictions
 - After the first month, slot allocation depends on the user's credit score
 
@@ -14,27 +14,21 @@ The Campaign Slots System implements a tiered approach to campaign creation limi
 
 | Credit Score | Free Slots/Month | Description |
 |--------------|------------------|-------------|
-| 80–100%     | 5 slots         | Highest trust level, maximum flexibility |
-| 75–79%      | 3 slots         | Moderate trust |
-| 65–74%      | 1 slot          | Limited campaigns |
-| 50–64%      | 0 slots         | Must improve trust or purchase slots |
-| 35–49%      | 0 slots         | Very limited access |
-| 20–34%      | 0 slots         | Near suspension threshold |
-| <20%        | 0 slots         | Cannot create campaigns until score improves |
+| 81–100%     | 25 slots        | Highest trust level, maximum flexibility |
+| 66–80%      | 20 slots        | High trust level |
+| 51–65%      | 15 slots        | Good trust level |
+| 36–50%      | 10 slots        | Moderate trust level |
+| 21–35%      | 5 slots         | Basic trust level |
+| 0–20%       | 3 slots         | Limited access |
 
-### 3. Paid Slot Access (Score-Gated)
+### 3. No Paid Slots Required
 
-| Credit Score | Available Slots | Price | Total Possible |
-|--------------|-----------------|-------|----------------|
-| 50–64%      | Up to 3 slots  | ₱9,000 for 3 | 3 total |
-| 35–49%      | Up to 2 slots  | ₱6,000 for 2 | 2 total |
-| 20–34%      | 1 slot         | ₱3,000 for 1 | 1 total |
-| <20%        | None           | 0    | 0 |
+The new system provides sufficient free slots for all credit score tiers, eliminating the need for paid slot purchases. All users can access their allocated free slots based on their credit score performance.
 
 ### 4. Slot Rules & Score Impact
 - **Slot counts reset every 30 days** from the date of the user's first campaign creation
 - **Campaign success and community ratings** directly affect credit scores
-- **Paid slots are monthly**, non-transferable, and non-refundable
+- **All slots are free** and allocated based on credit score performance
 - **Campaigns only count towards score** once they reach their operational funding threshold
 
 ## Technical Implementation
@@ -80,30 +74,30 @@ When users reach their limit, they receive clear information about:
 
 ### For Users
 - **Transparent limits** with clear progression paths
-- **First-month bonus** encourages new user engagement
-- **Multiple ways to access slots** (improve score or purchase)
+- **Generous first-month bonus** (10 slots) encourages new user engagement
+- **Progressive slot allocation** based on credit score performance
 - **Monthly reset** provides regular opportunities
 
 ### For Platform
 - **Quality control** through credit score requirements
-- **Revenue generation** through paid slot sales
 - **User engagement** through clear progression goals
 - **Fraud prevention** through tiered access control
 - **Consistent timing** through 30-day cycles from first campaign creation
+- **Improved user retention** through generous slot allocation
 
 ## Future Enhancements
 
 ### Planned Features
-- **Paid slot purchase flow** with payment integration
 - **Slot gifting** between users
-- **Bulk slot packages** for power users
 - **Seasonal bonuses** and special events
+- **Achievement-based slot bonuses** for exceptional performance
+- **Community challenges** with slot rewards
 
 ### Analytics
 - Slot usage patterns and trends
 - Credit score improvement tracking
-- Revenue from paid slot sales
 - User progression through tiers
+- Campaign success rates by tier
 
 ## Migration Notes
 

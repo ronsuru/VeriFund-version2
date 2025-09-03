@@ -5492,12 +5492,34 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
       ))
       .limit(1);
     
-    if (existing) {
-      return existing;
+    // Get current credit score and first campaign info
+    const avgCreditScore = await this.getUserAverageCreditScore(userId);
+    const firstCampaign = await this.getUserFirstCampaign(userId);
+    
+    let isFirstMonth = false;
+    if (firstCampaign) {
+      const now = new Date();
+      const firstCampaignDate = new Date(firstCampaign.createdAt);
+      const daysSinceFirstCampaign = Math.floor((now.getTime() - firstCampaignDate.getTime()) / (1000 * 60 * 60 * 24));
+      isFirstMonth = daysSinceFirstCampaign < 30;
+    } else {
+      isFirstMonth = true; // No campaigns yet
     }
     
-    // Create new record with current credit score
-    const avgCreditScore = await this.getUserAverageCreditScore(userId);
+    if (existing) {
+      // Update existing record with new campaign slot logic
+      const newMaxAllowed = isFirstMonth ? 10 : (avgCreditScore >= 81 ? 25 : avgCreditScore >= 66 ? 20 : avgCreditScore >= 51 ? 15 : avgCreditScore >= 36 ? 10 : avgCreditScore >= 21 ? 5 : 3);
+      const updatedRecord = await db
+        .update(monthlyCampaignLimits)
+        .set({
+          maxAllowed: newMaxAllowed,
+          isFirstMonth: isFirstMonth,
+          updatedAt: new Date(),
+        })
+        .where(eq(monthlyCampaignLimits.id, existing.id))
+        .returning();
+      return updatedRecord[0];
+    }
     let maxAllowed = 10; // Default for 85-100%
     
     if (avgCreditScore < 65) {
@@ -7423,7 +7445,7 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
     
     let daysUntilReset = 0;
     let isFirstMonth = false;
-    let freeCampaign = 3; // Default free campaign slots for new users
+    let freeCampaign = 10; // Default free campaign slots for new users
     
     if (firstCampaign) {
       const now = new Date();
@@ -7438,8 +7460,8 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
       isFirstMonth = daysSinceFirstCampaign < 30;
       
       if (isFirstMonth) {
-        // In first month: freeCampaign starts at 3, deduct based on operational campaigns
-        freeCampaign = 3;
+        // In first month: freeCampaign starts at 10, deduct based on operational campaigns
+        freeCampaign = 10;
         
         // Count campaigns that have reached operational amount
         const operationalCampaigns = allUserCampaigns.filter(campaign => 
@@ -7447,16 +7469,16 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
         );
         
         // Deduct from freeCampaign based on operational campaigns
-        freeCampaign = Math.max(0, 3 - operationalCampaigns.length);
+        freeCampaign = Math.max(0, 10 - operationalCampaigns.length);
       } else {
         // After first month: apply credit score restrictions
         freeCampaign = 0; // No more free slots
       }
     } else {
-      // No campaigns yet: full 3 free slots available, countdown hasn't started
+      // No campaigns yet: full 10 free slots available, countdown hasn't started
       isFirstMonth = true;
       daysUntilReset = 30; // Show 30 days since countdown hasn't started yet
-      freeCampaign = 3;
+      freeCampaign = 10;
     }
 
     // Get or create monthly limit record
@@ -7473,12 +7495,12 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
       paidSlotPrice = 0;
     } else {
       // After first month: apply credit score tiers
-      if (avgCreditScore >= 80) { maxAllowed = 5; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-      else if (avgCreditScore >= 75) { maxAllowed = 3; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-      else if (avgCreditScore >= 65) { maxAllowed = 1; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-      else if (avgCreditScore >= 50) { maxAllowed = 0; paidSlotsAvailable = 3; paidSlotPrice = 9000; }
-      else if (avgCreditScore >= 35) { maxAllowed = 0; paidSlotsAvailable = 2; paidSlotPrice = 6000; }
-      else if (avgCreditScore >= 20) { maxAllowed = 0; paidSlotsAvailable = 1; paidSlotPrice = 3000; }
+      if (avgCreditScore >= 81) { maxAllowed = 25; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 66) { maxAllowed = 20; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 51) { maxAllowed = 15; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 36) { maxAllowed = 10; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 21) { maxAllowed = 5; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 0) { maxAllowed = 3; paidSlotsAvailable = 0; paidSlotPrice = 0; }
       else { maxAllowed = 0; paidSlotsAvailable = 0; paidSlotPrice = 0; }
     }
 
@@ -7487,10 +7509,13 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
     
     // Next tier information
     let nextTierInfo = null;
-          if (avgCreditScore < 80) {
-        if (avgCreditScore < 75) { nextTierInfo = { nextTier: '75%', message: 'Reach 75% credit score for 3 free slots/month', requiredScore: 75 }; }
-        else if (avgCreditScore < 80) { nextTierInfo = { nextTier: '80%', message: 'Reach 80% credit score for 5 free slots/month', requiredScore: 80 }; }
-      }
+    if (avgCreditScore < 81) {
+      if (avgCreditScore < 21) { nextTierInfo = { nextTier: '21%', message: 'Reach 21% credit score for 5 free slots/month', requiredScore: 21 }; }
+      else if (avgCreditScore < 36) { nextTierInfo = { nextTier: '36%', message: 'Reach 36% credit score for 10 free slots/month', requiredScore: 36 }; }
+      else if (avgCreditScore < 51) { nextTierInfo = { nextTier: '51%', message: 'Reach 51% credit score for 15 free slots/month', requiredScore: 51 }; }
+      else if (avgCreditScore < 66) { nextTierInfo = { nextTier: '66%', message: 'Reach 66% credit score for 20 free slots/month', requiredScore: 66 }; }
+      else if (avgCreditScore < 81) { nextTierInfo = { nextTier: '81%', message: 'Reach 81% credit score for 25 free slots/month', requiredScore: 81 }; }
+    }
 
     return {
       userId, 
@@ -7556,23 +7581,24 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
       isFirstMonth = daysSinceFirstCampaign < 30;
       
       if (isFirstMonth) {
-        // Still in first month - give 3 free slots regardless of credit score
-        maxAllowed = 3;
+        // Still in first month - give 10 free slots regardless of credit score
+        maxAllowed = 10;
         paidSlotsAvailable = 0;
         paidSlotPrice = 0;
       } else {
         // First month ended, apply credit score tiers
-        if (avgCreditScore >= 80) { maxAllowed = 5; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-        else if (avgCreditScore >= 75) { maxAllowed = 3; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-        else if (avgCreditScore >= 65) { maxAllowed = 1; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-        else if (avgCreditScore >= 50) { maxAllowed = 0; paidSlotsAvailable = 3; paidSlotPrice = 9000; }
-        else if (avgCreditScore >= 35) { maxAllowed = 0; paidSlotsAvailable = 2; paidSlotPrice = 6000; }
-        else if (avgCreditScore >= 20) { maxAllowed = 0; paidSlotsAvailable = 1; paidSlotPrice = 3000; }
+        if (avgCreditScore >= 81) { maxAllowed = 25; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+        else if (avgCreditScore >= 66) { maxAllowed = 20; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+        else if (avgCreditScore >= 51) { maxAllowed = 15; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+        else if (avgCreditScore >= 36) { maxAllowed = 10; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+        else if (avgCreditScore >= 21) { maxAllowed = 5; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+        else if (avgCreditScore >= 0) { maxAllowed = 3; paidSlotsAvailable = 0; paidSlotPrice = 0; }
         else { maxAllowed = 0; paidSlotsAvailable = 0; paidSlotPrice = 0; }
       }
     } else {
-      // No campaigns yet: show 3 free slots but no countdown
+      // No campaigns yet: show 10 free slots but no countdown
       isFirstMonth = true;
+      maxAllowed = 10;
       paidSlotsAvailable = 0;
       paidSlotPrice = 0;
     }
