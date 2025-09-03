@@ -118,13 +118,22 @@ export default function CreatorProfile({
             <Badge 
               variant={
                 creator.kycStatus === 'verified' ? 'default' : 
-                creator.kycStatus === 'pending' ? 'secondary' : 
-                'destructive'
+                creator.kycStatus === 'pending' && (creator.governmentIdUrl || creator.proofOfAddressUrl) ? 'secondary' : 
+                creator.kycStatus === 'on_progress' ? 'secondary' :
+                creator.kycStatus === 'rejected' ? 'destructive' :
+                'outline'
               }
               data-testid="creator-kyc-status"
             >
               <UserVerifiedBadge size="sm" className="mr-1" />
-              KYC {creator.kycStatus || 'Not started'}
+              KYC {(() => {
+                const hasKycDocuments = creator.governmentIdUrl || creator.proofOfAddressUrl;
+                if (creator.kycStatus === 'verified') return 'Verified';
+                if (creator.kycStatus === 'pending' && hasKycDocuments) return 'Pending';
+                if (creator.kycStatus === 'on_progress') return 'In Progress';
+                if (creator.kycStatus === 'rejected') return 'Rejected';
+                return 'Basic';
+              })()}
             </Badge>
           </div>
           {joinDateFormatted && (

@@ -924,7 +924,7 @@ const renderCampaignDetails = (campaign: any) => (
             <p><strong>Address:</strong> {campaign.creator?.address || 'Not provided'}</p>
             <p><strong>Birthday:</strong> {campaign.creator?.birthday ? new Date(campaign.creator.birthday).toLocaleDateString() : 'Not provided'}</p>
             <p><strong>Registration Date:</strong> {campaign.creator?.createdAt ? new Date(campaign.creator.createdAt).toLocaleDateString() : 'N/A'}</p>
-            <p><strong>KYC Status:</strong> <Badge variant={campaign.creator?.kycStatus === 'verified' ? 'default' : campaign.creator?.kycStatus === 'pending' ? 'secondary' : 'destructive'}>{campaign.creator?.kycStatus || 'pending'}</Badge></p>
+            <p><strong>KYC Status:</strong> <Badge variant={campaign.creator?.kycStatus === 'verified' ? 'default' : campaign.creator?.kycStatus === 'pending' && (campaign.creator?.governmentIdUrl || campaign.creator?.proofOfAddressUrl) ? 'secondary' : campaign.creator?.kycStatus === 'on_progress' ? 'secondary' : campaign.creator?.kycStatus === 'rejected' ? 'destructive' : 'outline'}>{(!campaign.creator?.governmentIdUrl && !campaign.creator?.proofOfAddressUrl) ? 'Basic' : campaign.creator?.kycStatus || 'Basic'}</Badge></p>
           </div>
         </div>
 
@@ -1208,7 +1208,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
             <p><strong>Location:</strong> {creator?.location || 'Not provided'}</p>
             <p><strong>Languages:</strong> {creator?.languages || 'Not provided'}</p>
             <p><strong>Registration Date:</strong> {new Date(creator?.createdAt || Date.now()).toLocaleDateString()}</p>
-            <p><strong>KYC Status:</strong> <Badge variant={creator?.kycStatus === 'verified' ? 'default' : creator?.kycStatus === 'pending' ? 'secondary' : 'destructive'}>{creator?.kycStatus || 'pending'}</Badge></p>
+            <p><strong>KYC Status:</strong> <Badge variant={creator?.kycStatus === 'verified' ? 'default' : creator?.kycStatus === 'pending' && (creator?.governmentIdUrl || creator?.proofOfAddressUrl) ? 'secondary' : creator?.kycStatus === 'on_progress' ? 'secondary' : creator?.kycStatus === 'rejected' ? 'destructive' : 'outline'}>{(!creator?.governmentIdUrl && !creator?.proofOfAddressUrl) ? 'Basic' : creator?.kycStatus || 'Basic'}</Badge></p>
             {creator?.bio && (
               <div>
                 <strong>Bio:</strong>
@@ -1391,7 +1391,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
             <p><strong>Address:</strong> {user.address || 'Not provided'}</p>
             <p><strong>Birthday:</strong> {user.birthday ? new Date(user.birthday).toLocaleDateString() : user.dateOfBirth || 'Not provided'}</p>
             <p><strong>Registration Date:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
-            <p><strong>KYC Status:</strong> <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' ? 'secondary' : 'destructive'}>{user.kycStatus || 'pending'}</Badge></p>
+            <p><strong>KYC Status:</strong> <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' && (user.governmentIdUrl || user.proofOfAddressUrl) ? 'secondary' : user.kycStatus === 'on_progress' ? 'secondary' : user.kycStatus === 'rejected' ? 'destructive' : 'outline'}>{(!user.governmentIdUrl && !user.proofOfAddressUrl) ? 'Basic' : user.kycStatus || 'Basic'}</Badge></p>
           </div>
         </div>
 
@@ -2536,27 +2536,29 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
           <CardTitle>Claimed Assignments</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 p-1 bg-gray-100 rounded-lg">
-                <TabsTrigger 
-                  value="pending-kyc" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
-                >
-                  <span className="hidden sm:inline">Pending KYC</span>
-                  <span className="sm:hidden">KYC</span>
-                  <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedKyc || []).length}</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="pending-campaigns" 
-                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
-                >
-                  <span className="hidden sm:inline">Pending Campaigns</span>
-                  <span className="sm:hidden">Campaigns</span>
-                  <span className="ml-1 bg-green-100 text-green-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedCampaigns || []).length}</span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="document-reports" 
+          {/* Desktop: Tabs, Mobile: Dropdown */}
+          <div className="hidden md:block">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="w-full">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 p-1 bg-gray-100 rounded-lg">
+                  <TabsTrigger 
+                    value="pending-kyc" 
+                    className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                  >
+                    <span className="hidden sm:inline">Pending KYC</span>
+                    <span className="sm:hidden">KYC</span>
+                    <span className="ml-1 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedKyc || []).length}</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="pending-campaigns" 
+                    className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                  >
+                    <span className="hidden sm:inline">Pending Campaigns</span>
+                    <span className="sm:hidden">Campaigns</span>
+                    <span className="ml-1 bg-green-100 text-green-800 text-xs px-1.5 py-0.5 rounded-full">{(claimedCampaigns || []).length}</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="document-reports" 
                   className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
                 >
                   <span className="hidden sm:inline">Document Reports</span>
@@ -2980,6 +2982,438 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
             </TabsContent>
 
           </Tabs>
+          </div>
+
+          {/* Mobile: Dropdown Selector */}
+          <div className="md:hidden">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Assignment Type
+              </label>
+              <Select value={activeTab} onValueChange={setActiveTab}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose assignment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending-kyc">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Pending KYC</span>
+                      <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{(claimedKyc || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pending-campaigns">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Pending Campaigns</span>
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{(claimedCampaigns || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="document-reports">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Document Reports</span>
+                      <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{(claimedReports || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="campaign-reports">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Campaign Reports</span>
+                      <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{(claimedCampaignReports || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="volunteer-reports">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Volunteer Reports</span>
+                      <span className="ml-2 bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">{(claimedVolunteerReports || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="creator-reports">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Creator Reports</span>
+                      <span className="ml-2 bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">{(claimedCreatorReports || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="suspended-users">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Suspended Users</span>
+                      <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{(claimedSuspendedUsersData || []).length}</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Mobile Content Display - Simplified version */}
+            <div className="mt-4">
+              {activeTab === "pending-kyc" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedKyc || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No pending KYC requests claimed</p>
+                  ) : (
+                    sortByPriority(claimedKyc || []).slice(0, 10).map((kyc: any) => (
+                      <div key={kyc.id} className="border rounded-lg p-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={kyc.profileImageUrl} />
+                              <AvatarFallback>{kyc.firstName?.[0]}{kyc.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">{kyc.firstName} {kyc.lastName}</h4>
+                              <p className="text-sm text-gray-600">{kyc.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">User ID:</span>
+                                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{kyc.userDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Submitted:</strong> {kyc.submittedAt ? new Date(kyc.submittedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {kyc.claimedAt ? new Date(kyc.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/users/${kyc.id}`, '_blank')}
+                              data-testid={`button-view-kyc-${kyc.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Add other tab content here for mobile - simplified versions */}
+              {activeTab === "pending-campaigns" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedCampaigns || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No pending campaigns claimed</p>
+                  ) : (
+                    (claimedCampaigns || []).slice(0, 10).map((campaign: any) => (
+                      <div key={campaign.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={campaign.creator?.profileImageUrl} />
+                              <AvatarFallback>{campaign.creator?.firstName?.[0]}{campaign.creator?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">{campaign.title}</h4>
+                              <p className="text-sm text-gray-600">by {campaign.creator?.firstName} {campaign.creator?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Campaign ID:</span>
+                                <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{campaign.campaignDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Target:</strong> ₱{parseFloat(campaign.targetAmount || "0").toLocaleString()}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {campaign.claimedAt ? new Date(campaign.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-green-100 text-green-800 border-green-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/campaigns/${campaign.id}`, '_blank')}
+                              data-testid={`button-view-campaign-${campaign.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Add remaining tab content for mobile - simplified versions */}
+              {activeTab === "document-reports" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedReports || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No document reports claimed</p>
+                  ) : (
+                    (claimedReports || []).slice(0, 10).map((report: any) => (
+                      <div key={report.id} className="border rounded-lg p-4 bg-purple-50 border-purple-200">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">Document Report</h4>
+                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Report ID:</span>
+                                <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Type:</strong> {report.reportType || 'Document Issue'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/reports/${report.id}`, '_blank')}
+                              data-testid={`button-view-report-${report.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Add remaining tab content for mobile - campaign-reports, volunteer-reports, creator-reports, suspended-users */}
+              {activeTab === "campaign-reports" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedCampaignReports || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No campaign reports claimed</p>
+                  ) : (
+                    (claimedCampaignReports || []).slice(0, 10).map((report: any) => (
+                      <div key={report.id} className="border rounded-lg p-4 bg-orange-50 border-orange-200">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">Campaign Report</h4>
+                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Report ID:</span>
+                                <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Campaign:</strong> {report.campaign?.title || 'Unknown Campaign'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/reports/${report.id}`, '_blank')}
+                              data-testid={`button-view-campaign-report-${report.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeTab === "volunteer-reports" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedVolunteerReports || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No volunteer reports claimed</p>
+                  ) : (
+                    (claimedVolunteerReports || []).slice(0, 10).map((report: any) => (
+                      <div key={report.id} className="border rounded-lg p-4 bg-teal-50 border-teal-200">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">Volunteer Report</h4>
+                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Report ID:</span>
+                                <div className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Volunteer:</strong> {report.volunteer?.firstName} {report.volunteer?.lastName}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-teal-100 text-teal-800 border-teal-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/reports/${report.id}`, '_blank')}
+                              data-testid={`button-view-volunteer-report-${report.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeTab === "creator-reports" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedCreatorReports || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No creator reports claimed</p>
+                  ) : (
+                    (claimedCreatorReports || []).slice(0, 10).map((report: any) => (
+                      <div key={report.id} className="border rounded-lg p-4 bg-pink-50 border-pink-200">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">Creator Report</h4>
+                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Report ID:</span>
+                                <div className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Creator:</strong> {report.creator?.firstName} {report.creator?.lastName}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-pink-100 text-pink-800 border-pink-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/reports/${report.id}`, '_blank')}
+                              data-testid={`button-view-creator-report-${report.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeTab === "suspended-users" && (
+                <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(claimedSuspendedUsersData || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No claimed suspended users</p>
+                  ) : (
+                    (claimedSuspendedUsersData || []).slice(0, 10).map((user: any) => (
+                      <div key={user.id} className="border rounded-lg p-4 bg-orange-50 border-orange-200">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={user.profileImageUrl} />
+                              <AvatarFallback>{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-medium">{user.firstName} {user.lastName}</h4>
+                              <p className="text-sm text-gray-600">{user.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">User ID:</span>
+                                <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{user.userDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Reason:</strong> {user.suspensionReason || 'No reason provided'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Suspended:</strong> {user.suspendedAt ? new Date(user.suspendedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Claimed:</strong> {user.claimedAt ? new Date(user.claimedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                              <Users className="w-3 h-3 mr-1" />
+                              Claimed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/users/${user.id}`, '_blank')}
+                              data-testid={`button-view-suspended-${user.id}`}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -3060,9 +3494,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs value={completedTab} onValueChange={setCompletedTab}>
-            <div className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 p-1 bg-gray-100 rounded-lg">
+          {/* Desktop: Tabs, Mobile: Dropdown */}
+          <div className="hidden md:block">
+            <Tabs value={completedTab} onValueChange={setCompletedTab}>
+              <div className="w-full">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-1 p-1 bg-gray-100 rounded-lg">
                 <TabsTrigger 
                   value="completed-kyc" 
                   className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
@@ -3454,6 +3890,436 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
             </TabsContent>
 
           </Tabs>
+          </div>
+
+          {/* Mobile: Dropdown Selector */}
+          <div className="md:hidden">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Completed Work Type
+              </label>
+              <Select value={completedTab} onValueChange={setCompletedTab}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose completed work type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completed-kyc">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Completed KYC</span>
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{(completedKyc || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed-campaigns">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Completed Campaigns</span>
+                      <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{(claimedCampaigns || []).length + (completedCampaigns || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed-documents">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Completed Documents</span>
+                      <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{(completedDocuments || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed-campaign-reports">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Campaign Reports</span>
+                      <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{(reportedCampaigns || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed-volunteers">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Completed Volunteers</span>
+                      <span className="ml-2 bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">{(completedVolunteers || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed-creators">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Completed Creators</span>
+                      <span className="ml-2 bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">{(completedCreators || []).length}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="completed-suspended">
+                    <div className="flex items-center justify-between w-full">
+                      <span>Completed Suspended</span>
+                      <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{(completedSuspendedUsers || []).length}</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Mobile Content Display - Simplified version */}
+            <div className="mt-4">
+              {completedTab === "completed-kyc" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(completedKyc || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed KYC requests</p>
+                  ) : (
+                    (completedKyc || []).slice(0, 10).map((kyc: any) => (
+                      <div key={kyc.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={kyc.profileImageUrl} />
+                              <AvatarFallback>{kyc.firstName?.[0]}{kyc.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{kyc.firstName} {kyc.lastName}</h4>
+                              <p className="text-sm text-gray-600 truncate">{kyc.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">User ID:</span>
+                                <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{kyc.userDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Completed:</strong> {kyc.completedAt ? new Date(kyc.completedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-green-100 text-green-800 border-green-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/users/${kyc.id}`, '_blank')}
+                              data-testid={`button-view-completed-kyc-${kyc.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {completedTab === "completed-campaigns" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {((claimedCampaigns || []).length + (completedCampaigns || []).length) === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed campaigns</p>
+                  ) : (
+                    [...(claimedCampaigns || []), ...(completedCampaigns || [])].slice(0, 10).map((campaign: any) => (
+                      <div key={campaign.id} className="border rounded-lg p-4 bg-blue-50 border-blue-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={campaign.creator?.profileImageUrl} />
+                              <AvatarFallback>{campaign.creator?.firstName?.[0]}{campaign.creator?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{campaign.title}</h4>
+                              <p className="text-sm text-gray-600 truncate">by {campaign.creator?.firstName} {campaign.creator?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Campaign ID:</span>
+                                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{campaign.campaignDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Target:</strong> ₱{parseFloat(campaign.targetAmount || "0").toLocaleString()}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Completed:</strong> {campaign.completedAt ? new Date(campaign.completedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/campaigns/${campaign.id}`, '_blank')}
+                              data-testid={`button-view-completed-campaign-${campaign.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {completedTab === "completed-documents" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(completedDocuments || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed documents</p>
+                  ) : (
+                    (completedDocuments || []).slice(0, 10).map((doc: any) => (
+                      <div key={doc.id} className="border rounded-lg p-4 bg-purple-50 border-purple-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={doc.user?.profileImageUrl} />
+                              <AvatarFallback>{doc.user?.firstName?.[0]}{doc.user?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">Document Review</h4>
+                              <p className="text-sm text-gray-600 truncate">by {doc.user?.firstName} {doc.user?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Document ID:</span>
+                                <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{doc.documentDisplayId || doc.id}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Type:</strong> {doc.documentType || 'Document Review'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Completed:</strong> {doc.completedAt ? new Date(doc.completedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/documents/${doc.id}`, '_blank')}
+                              data-testid={`button-view-completed-doc-${doc.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {completedTab === "completed-campaign-reports" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(reportedCampaigns || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed campaign reports</p>
+                  ) : (
+                    (reportedCampaigns || []).slice(0, 10).map((report: any) => (
+                      <div key={report.id} className="border rounded-lg p-4 bg-orange-50 border-orange-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">Campaign Report</h4>
+                              <p className="text-sm text-gray-600 truncate">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Report ID:</span>
+                                <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Campaign:</strong> {report.campaign?.title || 'Unknown Campaign'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Completed:</strong> {report.completedAt ? new Date(report.completedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/reports/${report.id}`, '_blank')}
+                              data-testid={`button-view-completed-campaign-report-${report.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {completedTab === "completed-volunteers" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(completedVolunteers || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed volunteers</p>
+                  ) : (
+                    (completedVolunteers || []).slice(0, 10).map((volunteer: any) => (
+                      <div key={volunteer.id} className="border rounded-lg p-4 bg-teal-50 border-teal-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={volunteer.profileImageUrl} />
+                              <AvatarFallback>{volunteer.firstName?.[0]}{volunteer.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{volunteer.firstName} {volunteer.lastName}</h4>
+                              <p className="text-sm text-gray-600 truncate">{volunteer.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Volunteer ID:</span>
+                                <div className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{volunteer.volunteerDisplayId || volunteer.id}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Campaign:</strong> {volunteer.campaign?.title || 'Unknown Campaign'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Completed:</strong> {volunteer.completedAt ? new Date(volunteer.completedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-teal-100 text-teal-800 border-teal-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/volunteers/${volunteer.id}`, '_blank')}
+                              data-testid={`button-view-completed-volunteer-${volunteer.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {completedTab === "completed-creators" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(completedCreators || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed creators</p>
+                  ) : (
+                    (completedCreators || []).slice(0, 10).map((creator: any) => (
+                      <div key={creator.id} className="border rounded-lg p-4 bg-pink-50 border-pink-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={creator.profileImageUrl} />
+                              <AvatarFallback>{creator.firstName?.[0]}{creator.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{creator.firstName} {creator.lastName}</h4>
+                              <p className="text-sm text-gray-600 truncate">{creator.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">Creator ID:</span>
+                                <div className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{creator.creatorDisplayId || creator.id}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Campaigns:</strong> {creator.campaigns?.length || 0}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Completed:</strong> {creator.completedAt ? new Date(creator.completedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-pink-100 text-pink-800 border-pink-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/creators/${creator.id}`, '_blank')}
+                              data-testid={`button-view-completed-creator-${creator.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {completedTab === "completed-suspended" && (
+                <div className="max-h-96 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {(completedSuspendedUsers || []).length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">No completed suspended user cases</p>
+                  ) : (
+                    (completedSuspendedUsers || []).slice(0, 10).map((user: any) => (
+                      <div key={user.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={user.profileImageUrl} />
+                              <AvatarFallback>{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium truncate">{user.firstName} {user.lastName}</h4>
+                              <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-gray-600">User ID:</span>
+                                <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  <span className="font-mono">{user.userDisplayId}</span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-500 mt-1">
+                                <strong>Reason:</strong> {user.suspensionReason || 'No reason provided'}
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                <strong>Reactivated:</strong> {user.reactivatedAt ? new Date(user.reactivatedAt).toLocaleDateString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge className="bg-green-100 text-green-800 border-green-300">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Reactivated
+                            </Badge>
+                            <Button 
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/admin/users/${user.id}`, '_blank')}
+                              data-testid={`button-view-completed-suspended-${user.id}`}
+                              className="shrink-0"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -3522,6 +4388,11 @@ function KYCSection() {
 
   const { data: adminStaff = [] } = useQuery({
     queryKey: ['/api/admin/admins'],
+    retry: false,
+  });
+
+  const { data: adminUsers = [] } = useQuery({
+    queryKey: ['/api/admin/kyc/admin'],
     retry: false,
   });
 
@@ -3607,7 +4478,7 @@ function KYCSection() {
             <p><strong>Address:</strong> {user.address || 'Not provided'}</p>
             <p><strong>Birthday:</strong> {user.birthday ? new Date(user.birthday).toLocaleDateString() : user.dateOfBirth || 'Not provided'}</p>
             <p><strong>Registration Date:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
-            <p><strong>KYC Status:</strong> <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' ? 'secondary' : 'destructive'}>{user.kycStatus || 'pending'}</Badge></p>
+            <p><strong>KYC Status:</strong> <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' && (user.governmentIdUrl || user.proofOfAddressUrl) ? 'secondary' : user.kycStatus === 'on_progress' ? 'secondary' : user.kycStatus === 'rejected' ? 'destructive' : 'outline'}>{(!user.governmentIdUrl && !user.proofOfAddressUrl) ? 'Basic' : user.kycStatus || 'Basic'}</Badge></p>
           </div>
         </div>
 
@@ -3806,8 +4677,8 @@ function KYCSection() {
                   <p className="font-medium text-sm md:text-base truncate">{user.firstName} {user.lastName}</p>
                   <p className="text-xs md:text-sm text-gray-600 truncate">{user.email}</p>
                   {showKycStatus && (
-                    <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' ? 'secondary' : 'destructive'} className="text-xs mt-1">
-                      {user.kycStatus || 'pending'}
+                    <Badge variant={user.kycStatus === 'verified' ? 'default' : user.kycStatus === 'pending' && (user.governmentIdUrl || user.proofOfAddressUrl) ? 'secondary' : user.kycStatus === 'on_progress' ? 'secondary' : user.kycStatus === 'rejected' ? 'destructive' : 'outline'} className="text-xs mt-1">
+                      {(!user.governmentIdUrl && !user.proofOfAddressUrl) ? 'Basic' : user.kycStatus || 'Basic'}
                     </Badge>
                   )}
                   {user.kycStatus === 'on_progress' && user.processedByAdmin && (
@@ -3821,7 +4692,7 @@ function KYCSection() {
                 </div>
               </div>
               <div className="flex gap-1 md:gap-2 flex-shrink-0">
-                {showClaimButton && user.kycStatus === 'pending' && (
+                {showClaimButton && user.kycStatus === 'pending' && (user.governmentIdUrl || user.proofOfAddressUrl) && (
                   <Button
                     size="sm"
                     className="text-xs px-2 md:px-3"
@@ -3864,6 +4735,151 @@ function KYCSection() {
       )}
     </div>
   );
+
+  const renderStaffList = (users: any[]) => {
+    // Separate users by role
+    const adminUsers = users.filter((user: any) => user.isAdmin);
+    const managerUsers = users.filter((user: any) => user.isManager);
+    const supportUsers = users.filter((user: any) => user.isSupport);
+
+    return (
+      <div className="space-y-6">
+        {/* Admin Users Section */}
+        {adminUsers.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-medium">Admin</span>
+              <span className="text-sm text-gray-500">({adminUsers.length} users)</span>
+            </h3>
+            <div className="max-h-64 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {adminUsers.map((user: any) => (
+                <div key={user.id} className="border border-red-200 rounded-lg p-3 bg-red-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                        <AvatarImage src={user.profileImageUrl} />
+                        <AvatarFallback className="text-xs md:text-sm bg-red-100">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm md:text-base truncate text-red-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs md:text-sm text-red-700 truncate">{user.email}</p>
+                        <Badge variant="default" className="text-xs mt-1 bg-red-600 hover:bg-red-700 text-white">
+                          Admin
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 md:gap-2 flex-shrink-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-xs px-2 md:px-3 border-red-300 text-red-700 hover:bg-red-100"
+                        onClick={() => toggleUserExpanded(user.id)}
+                      >
+                        <span className="hidden sm:inline">{expandedUsers.includes(user.id) ? 'Hide Details' : 'View Details'}</span>
+                        <span className="sm:hidden">{expandedUsers.includes(user.id) ? 'Hide' : 'View'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                  {expandedUsers.includes(user.id) && renderUserProfile(user)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Manager Users Section */}
+        {managerUsers.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">Manager</span>
+              <span className="text-sm text-gray-500">({managerUsers.length} users)</span>
+            </h3>
+            <div className="max-h-64 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {managerUsers.map((user: any) => (
+                <div key={user.id} className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                        <AvatarImage src={user.profileImageUrl} />
+                        <AvatarFallback className="text-xs md:text-sm bg-blue-100">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm md:text-base truncate text-blue-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs md:text-sm text-blue-700 truncate">{user.email}</p>
+                        <Badge variant="default" className="text-xs mt-1 bg-blue-600 hover:bg-blue-700">
+                          Manager
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 md:gap-2 flex-shrink-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-xs px-2 md:px-3 border-blue-300 text-blue-700 hover:bg-blue-100"
+                        onClick={() => toggleUserExpanded(user.id)}
+                      >
+                        <span className="hidden sm:inline">{expandedUsers.includes(user.id) ? 'Hide Details' : 'View Details'}</span>
+                        <span className="sm:hidden">{expandedUsers.includes(user.id) ? 'Hide' : 'View'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                  {expandedUsers.includes(user.id) && renderUserProfile(user)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Support Users Section */}
+        {supportUsers.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">Support</span>
+              <span className="text-sm text-gray-500">({supportUsers.length} users)</span>
+            </h3>
+            <div className="max-h-64 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {supportUsers.map((user: any) => (
+                <div key={user.id} className="border border-green-200 rounded-lg p-3 bg-green-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <Avatar className="h-8 w-8 md:h-10 md:w-10">
+                        <AvatarImage src={user.profileImageUrl} />
+                        <AvatarFallback className="text-xs md:text-sm bg-green-100">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm md:text-base truncate text-green-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-xs md:text-sm text-green-700 truncate">{user.email}</p>
+                        <Badge variant="default" className="text-xs mt-1 bg-green-600 hover:bg-green-700">
+                          Support
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 md:gap-2 flex-shrink-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-xs px-2 md:px-3 border-green-300 text-green-700 hover:bg-green-100"
+                        onClick={() => toggleUserExpanded(user.id)}
+                      >
+                        <span className="hidden sm:inline">{expandedUsers.includes(user.id) ? 'Hide Details' : 'View Details'}</span>
+                        <span className="sm:hidden">{expandedUsers.includes(user.id) ? 'Hide' : 'View'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                  {expandedUsers.includes(user.id) && renderUserProfile(user)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No staff users message */}
+        {users.length === 0 && (
+          <p className="text-center text-gray-500 py-8">No staff users found</p>
+        )}
+      </div>
+    );
+  };
 
   const renderSuspendedUsersList = (users: any[]) => (
     <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
@@ -4098,7 +5114,7 @@ function KYCSection() {
 
           <Tabs value={activeKycTab} onValueChange={setActiveKycTab}>
             <div className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 p-1 bg-gray-100 rounded-lg">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1 p-1 bg-gray-100 rounded-lg">
                 <TabsTrigger 
                   value="basic" 
                   className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
@@ -4138,6 +5154,14 @@ function KYCSection() {
                   <span className="hidden sm:inline">Suspended</span>
                   <span className="sm:hidden">Suspended</span>
                   <span className="ml-1 bg-orange-100 text-orange-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(suspendedUsers, 'suspended').length}</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="staffs" 
+                  className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+                >
+                  <span className="hidden sm:inline">Staffs</span>
+                  <span className="sm:hidden">Staffs</span>
+                  <span className="ml-1 bg-purple-100 text-purple-800 text-xs px-1.5 py-0.5 rounded-full">{getFilteredKycUsers(adminUsers, 'staffs').length}</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -4203,6 +5227,19 @@ function KYCSection() {
                   </p>
                 ) : (
                   renderSuspendedUsersList(filteredUsers)
+                );
+              })()}
+            </TabsContent>
+
+            <TabsContent value="staffs" className="mt-4">
+              {(() => {
+                const filteredUsers = getFilteredKycUsers(adminUsers, 'staffs');
+                return filteredUsers.length === 0 && kycSearchQuery ? (
+                  <p className="text-center text-gray-500 py-8">
+                    No staff users found matching "{kycSearchQuery}"
+                  </p>
+                ) : (
+                  renderStaffList(filteredUsers)
                 );
               })()}
             </TabsContent>
@@ -4472,7 +5509,7 @@ function CampaignsSection() {
             <p><strong>Location:</strong> {creator?.location || 'Not provided'}</p>
             <p><strong>Languages:</strong> {creator?.languages || 'Not provided'}</p>
             <p><strong>Registration Date:</strong> {new Date(creator?.createdAt || Date.now()).toLocaleDateString()}</p>
-            <p><strong>KYC Status:</strong> <Badge variant={creator?.kycStatus === 'verified' ? 'default' : creator?.kycStatus === 'pending' ? 'secondary' : 'destructive'}>{creator?.kycStatus || 'pending'}</Badge></p>
+            <p><strong>KYC Status:</strong> <Badge variant={creator?.kycStatus === 'verified' ? 'default' : creator?.kycStatus === 'pending' && (creator?.governmentIdUrl || creator?.proofOfAddressUrl) ? 'secondary' : creator?.kycStatus === 'on_progress' ? 'secondary' : creator?.kycStatus === 'rejected' ? 'destructive' : 'outline'}>{(!creator?.governmentIdUrl && !creator?.proofOfAddressUrl) ? 'Basic' : creator?.kycStatus || 'Basic'}</Badge></p>
             {creator?.bio && (
               <div>
                 <strong>Bio:</strong>
@@ -8189,16 +9226,27 @@ function InvitationsList({ invitations, status, emptyMessage, emptyIcon }: Invit
 // Role Manager Component
 function RoleManager() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState('');
-const [showAuditModal, setShowAuditModal] = useState(false);  const { data: users, refetch } = useQuery({ queryKey: ['/api/admin/access/users'] });
-  const { data: audit } = useQuery({ queryKey: ['/api/admin/access/audit'] });
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  const { data: users, refetch } = useQuery({ queryKey: ['/api/admin/access/users'] });
+  const { data: audit, refetch: refetchAudit } = useQuery({ queryKey: ['/api/admin/access/audit'] });
   const updateRoles = useMutation({
     mutationFn: async ({ userId, roles }: { userId: string; roles: { isAdmin?: boolean; isSupport?: boolean } }) => {
       return apiRequest('PUT', `/api/admin/access/users/${userId}/roles`, roles);
     },
     onSuccess: () => {
       toast({ title: 'Roles updated' });
-      refetch();
+      refetch(); // Refetch users list
+      refetchAudit(); // Refetch audit log
+      
+      // Invalidate KYC-related queries to update the KYC section tabs
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/kyc/basic'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/kyc/admin'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/kyc/pending'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/kyc/verified'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/kyc/rejected'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users/suspended'] });
     },
     onError: (e: any) => toast({ title: 'Update failed', description: e?.message || 'Error', variant: 'destructive' }),
   });
@@ -8216,7 +9264,8 @@ const [showAuditModal, setShowAuditModal] = useState(false);  const { data: user
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Desktop: Original layout */}
+      <div className="hidden md:flex items-center justify-between">
         <input
           className="border rounded px-3 py-2 text-sm w-72"
           placeholder="Search by email…"
@@ -8225,7 +9274,22 @@ const [showAuditModal, setShowAuditModal] = useState(false);  const { data: user
         />
         <div className="space-x-2">
           <Button size="sm" variant="outline" onClick={() => refetch()}>Refresh</Button>
-<Button size="sm" variant="secondary" onClick={() => setShowAuditModal(true)}>Logs</Button>        </div>
+          <Button size="sm" variant="secondary" onClick={() => setShowAuditModal(true)}>Logs</Button>
+        </div>
+      </div>
+
+      {/* Mobile: Inline layout */}
+      <div className="md:hidden">
+        <div className="flex items-center gap-2">
+          <input
+            className="border rounded px-3 py-2 text-sm flex-1"
+            placeholder="Search by email…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          <Button size="sm" variant="outline" onClick={() => refetch()}>Refresh</Button>
+          <Button size="sm" variant="secondary" onClick={() => setShowAuditModal(true)}>Logs</Button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -8269,9 +9333,14 @@ const [showAuditModal, setShowAuditModal] = useState(false);  const { data: user
       <Dialog open={showAuditModal} onOpenChange={setShowAuditModal}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <List className="h-5 w-5 mr-2 text-gray-600" />
-              Recent Role Changes
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <List className="h-5 w-5 mr-2 text-gray-600" />
+                Recent Role Changes
+              </div>
+              <Button size="sm" variant="outline" onClick={() => refetchAudit()}>
+                Refresh
+              </Button>
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">
@@ -8281,20 +9350,39 @@ const [showAuditModal, setShowAuditModal] = useState(false);  const { data: user
               <div className="text-sm text-gray-500">No role changes recorded in this session.</div>
             ) : (
               <ul className="space-y-3">
-                {(audit as any[]).map((log: any, index: number) => (
-                  <li key={index} className="p-3 border rounded-lg bg-gray-50">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900 mb-1">
-                          {log.message}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(log.timestamp).toLocaleString()}
+                {(audit as any[]).map((log: any, index: number) => {
+                  // Generate human-readable message from audit log data
+                  const generateMessage = (log: any) => {
+                    const actor = log.actorEmail || 'Unknown admin';
+                    const target = log.targetEmail || 'Unknown user';
+                    const changes = log.changes || {};
+                    
+                    const changesList = [];
+                    if (changes.isAdmin !== undefined) {
+                      changesList.push(`Admin: ${changes.isAdmin ? 'Granted' : 'Removed'}`);
+                    }
+                    if (changes.isSupport !== undefined) {
+                      changesList.push(`Support: ${changes.isSupport ? 'Granted' : 'Removed'}`);
+                    }
+                    
+                    return `${actor} updated ${target} - ${changesList.join(', ')}`;
+                  };
+
+                  return (
+                    <li key={log.id || index} className="p-3 border rounded-lg bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900 mb-1">
+                            {generateMessage(log)}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(log.at).toLocaleString()}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -8868,6 +9956,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
 
   // Guarded renders to avoid blank screen
   if (isLoadingServer) {
+    console.log('Admin page: Loading server user...');
     return (
 <div className="min-h-screen bg-background flex items-center justify-center">        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
@@ -8875,6 +9964,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
   }
 
   if (!serverUser) {
+    console.log('Admin page: No server user found');
     return (
 <div className="min-h-screen bg-background flex items-center justify-center">        <div className="text-gray-700">Please sign in to continue…</div>
       </div>
@@ -8882,6 +9972,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
   }
 
   if (!hasAdminAccess) {
+    console.log('Admin page: No admin access', { serverUser: serverUser?.email, isAdmin: (serverUser as any)?.isAdmin, isSupport: (serverUser as any)?.isSupport });
     return (
 <div className="min-h-screen bg-background flex items-center justify-center">        <div className="bg-white border rounded-lg p-6 shadow">
           <div className="text-xl font-semibold mb-2">Access Denied</div>
@@ -8898,6 +9989,16 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
     const applyTabFromUrl = () => {
       const params = new URLSearchParams(window.location.search || '');
       const tabFromUrl = params.get('tab') || 'main';
+      
+      console.log('Admin page: Applying tab from URL', { tabFromUrl, currentSearch: window.location.search });
+      
+      // If no tab parameter is present, add it to the URL
+      if (!params.get('tab')) {
+        params.set('tab', 'main');
+        window.history.replaceState({}, '', `/admin?${params.toString()}`);
+        console.log('Admin page: Added default tab parameter');
+      }
+      
       setActiveTab((prev) => (prev !== tabFromUrl ? tabFromUrl : prev));
     };
 
@@ -8952,12 +10053,12 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
     { id: "tickets", label: "Tickets", icon: MessageSquare, href: "/admin?tab=tickets" },  ];
 
   const workspaceItems = [
-    { id: "my-works", label: "Overview", icon: BarChart3 },
-    { id: "volunteers", label: "Volunteers", icon: Users },
-    { id: "financial", label: "Financial", icon: DollarSign },
-    { id: "stories", label: "Stories", icon: BookOpen },
-    { id: "access", label: "Access", icon: Shield },
-    { id: "invite", label: "Invites", icon: Mail },
+    { id: "my-works", label: "Overview", icon: BarChart3, href: "/admin?tab=my-works" },
+    { id: "volunteers", label: "Volunteers", icon: Users, href: "/admin?tab=volunteers" },
+    { id: "financial", label: "Financial", icon: DollarSign, href: "/admin?tab=financial" },
+    { id: "stories", label: "Stories", icon: BookOpen, href: "/admin?tab=stories" },
+    { id: "access", label: "Access", icon: Shield, href: "/admin?tab=invite" },
+    { id: "invite", label: "Invites", icon: Mail, href: "/admin?tab=invite" },
   ];
 
   const sidenavItems = [
@@ -8968,6 +10069,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
   ];
 
   const renderContent = () => {
+    console.log('Admin renderContent for tab', activeTab);
     if (import.meta.env.DEV) {
       console.log('Admin renderContent for tab', activeTab);
     }
@@ -9027,7 +10129,8 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
 
 
       {/* Navigation Drawer Toggle Button */}
-      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-4">
+      {/* Admin Menu Header - Hidden on mobile */}
+      <div className="hidden md:block bg-white border-b border-gray-200 px-4 md:px-6 py-4">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
@@ -9040,13 +10143,7 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
             <span className="text-sm font-semibold">Admin Menu</span>
           </button>
           
-          {/* Notification Icon */}
-          <button
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 hover:shadow-sm"
-            data-testid="notification-button"
-          >
-            <Bell className="h-5 w-5" />
-          </button>
+
         </div>
       </div>
 
@@ -9126,9 +10223,14 @@ case "notifications": return <NotificationsSection />;      case "tickets": retu
                               e.stopPropagation();
                   setActiveTab(item.id);
                               setIsMobileSidebarOpen(false);
-                  const params = new URLSearchParams(window.location.search);
-                  params.set('tab', item.id);
-                  window.history.replaceState({}, '', `/admin?${params.toString()}`);
+                  // Use href for navigation if available, otherwise use the old method
+                  if (item.href) {
+                    window.location.href = item.href;
+                  } else {
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('tab', item.id);
+                    window.history.replaceState({}, '', `/admin?${params.toString()}`);
+                  }
                 }}
                 className={`${
                               isActive

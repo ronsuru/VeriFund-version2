@@ -4487,11 +4487,12 @@ const staffUser = await storage.getUser(req.user?.claims?.sub || req.user?.sub);
       }
       
       // Get users who signed up but haven't submitted KYC documents yet
-      // Basic users have "pending" status but no KYC documents submitted
+      // Basic users have no KYC documents submitted (regardless of kycStatus)
+      // Exclude admin and support users from basic users list
       const allUsers = await storage.getAllUsers();
       const basicUsers = allUsers.filter(user => 
-        (user.kycStatus === 'pending' || !user.kycStatus || user.kycStatus === null || user.kycStatus === '') &&
-        (!user.governmentIdUrl || !user.proofOfAddressUrl) // No KYC documents submitted
+        (!user.governmentIdUrl && !user.proofOfAddressUrl) && // No KYC documents submitted
+        !user.isAdmin && !user.isSupport // Exclude admin and support users
       );
       
       console.log(`📋 Found ${basicUsers.length} basic users (registered but no KYC documents)`);
@@ -4578,6 +4579,30 @@ const staffUser = await storage.getUser(req.user?.claims?.sub || req.user?.sub);
     } catch (error) {
       console.error("Error fetching rejected KYC:", error);
       res.status(500).json({ message: "Failed to fetch rejected KYC" });
+    }
+  });
+
+  app.get('/api/admin/kyc/admin', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user?.claims?.sub || req.user?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user?.isAdmin && !user?.isManager && !user?.isSupport) {
+        return res.status(403).json({ message: "Admin, manager, or support access required" });
+      }
+      
+      // Get all admin, manager, and support users
+      const allUsers = await storage.getAllUsers();
+      const staffUsers = allUsers.filter(user => user.isAdmin || user.isManager || user.isSupport);
+      
+      console.log(`📋 Found ${staffUsers.length} staff users (admin/manager/support)`);
+      res.json(staffUsers);
+    } catch (error) {
+      console.error("Error fetching staff users:", error);
+      res.status(500).json({ message: "Failed to fetch staff users" });
     }
   });
 
@@ -7145,10 +7170,90 @@ const userId = req.user.claims.sub;      const user = await storage.getUser(user
         }
       }
 
+      // Get the target user before updating roles
+      const target = await storage.getUser(userId);
+      if (!target) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Store previous roles for comparison
+      const previousIsAdmin = target.isAdmin;
+      const previousIsSupport = target.isSupport;
+
       await storage.updateUserRoles(userId, { isAdmin, isSupport });
+      
+      // Send notifications for role changes
+      try {
+        const adminName = me.firstName ? `${me.firstName} ${me.lastName || ''}`.trim() : me.email || 'Admin';
+        
+        // Check for admin role changes
+        if (typeof isAdmin === 'boolean' && isAdmin !== previousIsAdmin) {
+          if (isAdmin) {
+            // Admin role granted
+            await storage.createNotification({
+              userId: userId,
+              title: "Admin Access Granted! 🎉",
+              message: `Congratulations! You have been granted admin access to the platform by ${adminName}. You can now access the admin panel and manage platform operations.`,
+              type: "admin_role_granted",
+              actionUrl: "/admin",
+              priority: "high",
+              relatedId: me.id,
+              metadata: { adminName, grantedBy: me.id }
+            });
+            console.log(`✅ Admin role granted notification sent to user ${userId}`);
+          } else {
+            // Admin role removed
+            await storage.createNotification({
+              userId: userId,
+              title: "Admin Access Removed",
+              message: `Your admin access has been removed by ${adminName}. You no longer have access to admin panel features.`,
+              type: "admin_role_removed",
+              actionUrl: "/my-profile",
+              priority: "high",
+              relatedId: me.id,
+              metadata: { adminName, removedBy: me.id }
+            });
+            console.log(`✅ Admin role removed notification sent to user ${userId}`);
+          }
+        }
+
+        // Check for support role changes
+        if (typeof isSupport === 'boolean' && isSupport !== previousIsSupport) {
+          if (isSupport) {
+            // Support role granted
+            await storage.createNotification({
+              userId: userId,
+              title: "Support Access Granted! 🎉",
+              message: `You have been granted support access to the platform by ${adminName}. You can now help users with their inquiries and manage support tickets.`,
+              type: "support_role_granted",
+              actionUrl: "/admin?tab=support",
+              priority: "high",
+              relatedId: me.id,
+              metadata: { adminName, grantedBy: me.id }
+            });
+            console.log(`✅ Support role granted notification sent to user ${userId}`);
+          } else {
+            // Support role removed
+            await storage.createNotification({
+              userId: userId,
+              title: "Support Access Removed",
+              message: `Your support access has been removed by ${adminName}. You no longer have access to support panel features.`,
+              type: "support_role_removed",
+              actionUrl: "/my-profile",
+              priority: "high",
+              relatedId: me.id,
+              metadata: { adminName, removedBy: me.id }
+            });
+            console.log(`✅ Support role removed notification sent to user ${userId}`);
+          }
+        }
+      } catch (notificationError) {
+        console.error('❌ Failed to send role change notifications:', notificationError);
+        // Don't fail the entire request if notifications fail
+      }
+
       // Append to audit log
       try {
-        const target = await storage.getUser(userId);
         roleAuditLog.unshift({
           id: crypto.randomUUID(),
           at: new Date().toISOString(),

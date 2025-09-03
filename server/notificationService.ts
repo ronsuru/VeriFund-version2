@@ -40,7 +40,11 @@ export enum NotificationType {
   COMMENT_MENTION = 'comment_mention',
   ADMIN_ANNOUNCEMENT = 'admin_announcement',
   REWARD_DISTRIBUTION = 'reward_distribution',
-  SECURITY_UPDATE = 'security_update'
+  SECURITY_UPDATE = 'security_update',
+  ADMIN_ROLE_GRANTED = 'admin_role_granted',
+  ADMIN_ROLE_REMOVED = 'admin_role_removed',
+  SUPPORT_ROLE_GRANTED = 'support_role_granted',
+  SUPPORT_ROLE_REMOVED = 'support_role_removed'
 }
 
 export enum NotificationPriority {
@@ -121,6 +125,38 @@ const notificationTemplates: Record<NotificationType, NotificationTemplate> = {
     messageTemplate: 'Security update for your account: {updateType}',
     actionUrlTemplate: '/my-profile',
     priority: NotificationPriority.URGENT,
+    icon: '🔒'
+  },
+  
+  [NotificationType.ADMIN_ROLE_GRANTED]: {
+    title: 'Admin Access Granted! 🎉',
+    messageTemplate: 'Congratulations! You have been granted admin access to the platform by {adminName}. You can now access the admin panel and manage platform operations.',
+    actionUrlTemplate: '/admin',
+    priority: NotificationPriority.HIGH,
+    icon: '👑'
+  },
+  
+  [NotificationType.ADMIN_ROLE_REMOVED]: {
+    title: 'Admin Access Removed',
+    messageTemplate: 'Your admin access has been removed by {adminName}. You no longer have access to admin panel features.',
+    actionUrlTemplate: '/my-profile',
+    priority: NotificationPriority.HIGH,
+    icon: '🔒'
+  },
+  
+  [NotificationType.SUPPORT_ROLE_GRANTED]: {
+    title: 'Support Access Granted! 🎉',
+    messageTemplate: 'You have been granted support access to the platform by {adminName}. You can now help users with their inquiries and manage support tickets.',
+    actionUrlTemplate: '/admin?tab=support',
+    priority: NotificationPriority.HIGH,
+    icon: '🎧'
+  },
+  
+  [NotificationType.SUPPORT_ROLE_REMOVED]: {
+    title: 'Support Access Removed',
+    messageTemplate: 'Your support access has been removed by {adminName}. You no longer have access to support panel features.',
+    actionUrlTemplate: '/my-profile',
+    priority: NotificationPriority.HIGH,
     icon: '🔒'
   }
 };

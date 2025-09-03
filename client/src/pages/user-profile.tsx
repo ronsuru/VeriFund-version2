@@ -114,6 +114,8 @@ export default function UserProfile() {
   
   const getKycStatusBadge = () => {
     const status = profile?.kycStatus;
+    const hasKycDocuments = profile?.governmentIdUrl || profile?.proofOfAddressUrl;
+    
     switch (status) {
       case "verified":
         return (
@@ -123,10 +125,26 @@ export default function UserProfile() {
           </Badge>
         );
       case "pending":
+        if (hasKycDocuments) {
+          return (
+            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+              <Clock className="w-3 h-3 mr-1" />
+              Pending Review
+            </Badge>
+          );
+        } else {
+          return (
+            <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+              <AlertCircle className="w-3 h-3 mr-1" />
+              Basic
+            </Badge>
+          );
+        }
+      case "on_progress":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
             <Clock className="w-3 h-3 mr-1" />
-            Pending Review
+            In Progress
           </Badge>
         );
       case "rejected":
@@ -140,7 +158,7 @@ export default function UserProfile() {
         return (
           <Badge className="bg-gray-100 text-gray-800 border-gray-200">
             <AlertCircle className="w-3 h-3 mr-1" />
-            Not Started
+            Basic
           </Badge>
         );
     }

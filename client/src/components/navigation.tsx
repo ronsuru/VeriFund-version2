@@ -77,7 +77,7 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
       <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl border border-border/50">        <div className="flex justify-between items-center h-16 px-6">
           <div className="flex items-center">
             <Link 
-              href={isAuthenticated && ((user as any)?.isAdmin || (user as any)?.isSupport) ? "/admin?tab=profile" : "/"} 
+              href={isAuthenticated && ((user as any)?.isAdmin || (user as any)?.isSupport) ? "/admin?tab=main" : "/"} 
               className="flex-shrink-0 flex items-center gap-2"
             >
               <img 
@@ -181,98 +181,8 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
                 {/* Admin/Support Only Navigation */}
                 {isAuthenticated && ((user as any)?.isAdmin || (user as any)?.isSupport) && (
                   <>
-                    {/* My Works Dropdown */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
-                            location === "/admin" && (window.location.search.includes('tab=my-works') || window.location.search.includes('tab=volunteers') || window.location.search.includes('tab=financial') || window.location.search.includes('tab=stories') || window.location.search.includes('tab=access') || window.location.search.includes('tab=invites') || !window.location.search)
-                              ? "text-primary bg-primary/10"
-                              : "text-gray-700 hover:text-primary"
-                          }`}
-                        >
-                          My Works
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin?tab=my-works" className="w-full cursor-pointer">
-                            Overview
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin?tab=volunteers" className="w-full cursor-pointer">
-                            Volunteers
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin?tab=financial" className="w-full cursor-pointer">
-                            Financial
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin?tab=stories" className="w-full cursor-pointer">
-                            Stories
-                          </Link>
-                        </DropdownMenuItem>
-                        {(user as any)?.isAdmin && (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <Link href="/admin?tab=access" className="w-full cursor-pointer">
-                                Access
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href="/admin?tab=invites" className="w-full cursor-pointer">
-                                Invites
-                              </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Link 
-                      href="/admin?tab=kyc"
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        location === "/admin" && window.location.search.includes('tab=kyc')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700 hover:text-primary"
-                      }`}
-                    >
-                      KYC
-                    </Link>
-                    <Link 
-                      href="/admin?tab=campaigns"
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        location === "/admin" && window.location.search.includes('tab=campaigns')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700 hover:text-primary"
-                      }`}
-                    >
-                      Campaigns
-                    </Link>
-                    <Link 
-                      href="/admin?tab=reports"
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        location === "/admin" && window.location.search.includes('tab=reports')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700 hover:text-primary"
-                      }`}
-                    >
-                      Reports
-                    </Link>
-                    <Link 
-                      href="/admin?tab=tickets"
-                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                        location === "/admin" && window.location.search.includes('tab=tickets')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700 hover:text-primary"
-                      }`}
-                    >
-                      Tickets
-                    </Link>
+
+
 
                     {/* Admin Navigation Items */}
                     {adminNavItems.map((item) => (
@@ -314,73 +224,47 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80" align="end">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
+                  <PopoverContent className="w-80 p-0" align="end">
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
                         <h3 className="font-semibold">Notifications</h3>
-<Link href={(user as any)?.isAdmin || (user as any)?.isSupport ? "/admin?tab=notifications" : "/notifications"}>                          <Button variant="ghost" size="sm" className="text-xs" data-testid="button-view-all-notifications">
-                            View all
-                          </Button>
-                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markAllAsRead()}
+                          className="text-xs"
+                        >
+                          Mark all read
+                        </Button>
                       </div>
-                      
-                      <div className="max-h-80 overflow-y-auto space-y-2">
-                        {!Array.isArray(notifications) || notifications.length === 0 ? (
-                          <div className="text-center py-6 text-muted-foreground">
-                            <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">No notifications yet</p>
-                          </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <p className="text-gray-500 text-sm text-center py-4">No notifications</p>
                         ) : (
-                          (notifications || []).slice(0, 5).map((notification) => (
+                          notifications.map((notification) => (
                             <div
                               key={notification.id}
-                              className={`p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors ${
-                                !notification.isRead ? 'bg-blue-50 border-blue-200' : 'bg-white'
+                              className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                                !notification.isRead ? 'bg-blue-50' : ''
                               }`}
-                              onClick={() => {
-                                if (!notification.isRead) {
-                                  markAsReadMutation.mutate(notification.id);
-                                }
-                                // Navigate to action URL if available
-                                if (notification.actionUrl) {
-                                  window.location.href = notification.actionUrl;
-                                } else {
-// Fallback to notifications page - route to admin panel for admin users
-                                  if ((user as any)?.isAdmin || (user as any)?.isSupport) {
-                                    window.location.href = '/admin?tab=notifications';
-                                  } else {
-                                    window.location.href = '/notifications';
-                                  }                                }
-                                setIsNotificationOpen(false);
-                              }}
-                              data-testid={`notification-${notification.id}`}
+                              onClick={() => handleNotificationClick(notification)}
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <h4 className="font-medium text-sm">{notification.title}</h4>
-                                    {!notification.isRead && (
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                              <div className="flex items-start gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {notification.title}
+                                  </p>
+                                  <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                                     {notification.message}
                                   </p>
-                                  <p className="text-xs text-muted-foreground mt-2">
-                                    {notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'Unknown time'}
+                                  <p className="text-xs text-gray-400 mt-1">
+                                    {new Date(notification.createdAt).toLocaleDateString()}
                                   </p>
                                 </div>
                               </div>
                             </div>
                           ))
-                        )}
-                        {Array.isArray(notifications) && notifications.length > 5 && (
-                          <div className="text-center py-2 border-t">
-<Link href={(user as any)?.isAdmin || (user as any)?.isSupport ? "/admin?tab=notifications" : "/notifications"}>                              <Button variant="ghost" size="sm" className="text-xs">
-                                View {Math.max(0, (notifications?.length || 0) - 5)} more notifications
-                              </Button>
-                            </Link>
-                          </div>
                         )}
                       </div>
                     </div>
@@ -526,16 +410,24 @@ onClick={() => {
                       </p>
                       {(() => {
                         const kycStatus = (user as any)?.kycStatus?.toLowerCase();
+                        const hasKycDocuments = (user as any)?.governmentIdUrl || (user as any)?.proofOfAddressUrl;
+                        
                         if (kycStatus === 'verified' || kycStatus === 'approved') {
                           return (
                             <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
                               ✓ Verified
                             </Badge>
                           );
-                        } else if (kycStatus === 'pending' || kycStatus === 'on_progress') {
+                        } else if (kycStatus === 'pending' && hasKycDocuments) {
                           return (
                             <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">
                               ⏳ Pending
+                            </Badge>
+                          );
+                        } else if (kycStatus === 'on_progress') {
+                          return (
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
+                              🔄 In Progress
                             </Badge>
                           );
                         } else if (kycStatus === 'rejected') {
@@ -547,7 +439,7 @@ onClick={() => {
                         } else {
                           return (
                             <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">
-                              ⭕ Unverified
+                              📋 Basic
                             </Badge>
                           );
                         }
@@ -773,9 +665,9 @@ onClick={() => {
                       {(user as any)?.isAdmin && (
                         <>
                           <Link 
-                            href="/admin?tab=access"
+                            href="/admin?tab=invite"
                             className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                              location === "/admin" && window.location.search.includes('tab=access')
+                              location === "/admin" && window.location.search.includes('tab=invite')
                                 ? "bg-green-600 text-white shadow-lg"
                                 : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
                             }`}

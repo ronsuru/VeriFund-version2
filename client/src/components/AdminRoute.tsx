@@ -34,6 +34,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Loading state
   if (isLoading || status === 'loading') {
+    console.log('AdminRoute: Loading user data...');
     return (
 <div className="min-h-screen bg-background flex items-center justify-center">        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
@@ -44,6 +45,13 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   // Access denied for non-admin users (this check works in both dev and production)
   if (!user || !hasAdminAccess) {
+    console.log('AdminRoute: Access denied', { 
+      user: user?.email, 
+      isAdmin: (user as any)?.isAdmin, 
+      isSupport: (user as any)?.isSupport,
+      userEmail,
+      hasAdminAccess 
+    });
     return (
 <div className="min-h-screen bg-background flex items-center justify-center">        <Card className="w-full max-w-md">
           <CardContent className="p-6 text-center">
@@ -66,5 +74,6 @@ export function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
+  console.log('AdminRoute: Access granted', { user: user?.email });
   return <>{children}</>;
 }

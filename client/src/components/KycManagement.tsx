@@ -186,18 +186,24 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        return;
     }
   };
 
-  const getKycStatusBadge = (status: string) => {
+  const getKycStatusBadge = (status: string, user?: any) => {
+    const hasKycDocuments = user?.governmentIdUrl || user?.proofOfAddressUrl;
+    
     switch (status) {
       case 'verified':
         return <Badge className="bg-green-100 text-green-800" data-testid="badge-kyc-verified">Verified</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800" data-testid="badge-kyc-pending">Pending</Badge>;
+        if (hasKycDocuments) {
+          return <Badge className="bg-yellow-100 text-yellow-800" data-testid="badge-kyc-pending">Pending</Badge>;
+        } else {
+          return <Badge className="bg-gray-100 text-gray-800" data-testid="badge-kyc-basic">Basic</Badge>;
+        }
       case 'on_progress':
         return <Badge className="bg-blue-100 text-blue-800" data-testid="badge-kyc-on-progress">On Progress</Badge>;
       case 'rejected':
         return <Badge className="bg-red-100 text-red-800" data-testid="badge-kyc-rejected">Rejected</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800" data-testid="badge-kyc-not-submitted">Not Submitted</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800" data-testid="badge-kyc-basic">Basic</Badge>;
     }
   };
 
@@ -258,7 +264,14 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        return;
                   )}
                   <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
                     <Badge variant={kycUser.kycStatus === 'verified' ? 'default' : 'secondary'} className="text-xs">
-                      {kycUser.kycStatus === 'verified' ? '✓ Verified' : kycUser.kycStatus || 'Unverified'}
+                      {(() => {
+                        const hasKycDocuments = kycUser.governmentIdUrl || kycUser.proofOfAddressUrl;
+                        if (kycUser.kycStatus === 'verified') return '✓ Verified';
+                        if (kycUser.kycStatus === 'pending' && hasKycDocuments) return '⏳ Pending';
+                        if (kycUser.kycStatus === 'on_progress') return '🔄 In Progress';
+                        if (kycUser.kycStatus === 'rejected') return '✗ Rejected';
+                        return '📋 Basic';
+                      })()}
                     </Badge>
                   </div>
                 </div>
@@ -361,7 +374,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        return;
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Current Status</Label>
                   <div className="mt-1">
-                    {getKycStatusBadge(kycUser.kycStatus || 'not_submitted')}
+                    {getKycStatusBadge(kycUser.kycStatus || 'not_submitted', kycUser)}
                   </div>
                 </div>
                 <div>
@@ -549,7 +562,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        return;
             <h3 className="font-semibold" data-testid={`kyc-user-name-${kycUser.id}`}>
               {kycUser.firstName} {kycUser.lastName}
             </h3>
-            {getKycStatusBadge(kycUser.kycStatus || 'not_submitted')}
+            {getKycStatusBadge(kycUser.kycStatus || 'not_submitted', kycUser)}
           </div>
           <div className="space-y-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">

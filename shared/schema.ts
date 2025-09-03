@@ -42,7 +42,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   
   // KYC and verification fields
-  kycStatus: varchar("kyc_status").default("pending"), // pending, in_progress, verified, rejected
+  kycStatus: varchar("kyc_status").default(null), // null=basic, pending, in_progress, verified, rejected
   kycDocuments: text("kyc_documents"), // JSON string
   governmentIdUrl: varchar("government_id_url"), // Government ID document URL
   proofOfAddressUrl: varchar("proof_of_address_url"), // Proof of address document URL

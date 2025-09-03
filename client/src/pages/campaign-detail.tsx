@@ -2816,11 +2816,30 @@ onTipVolunteers={() => {
                     <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
                       selectedVolunteer.volunteerProfile?.kycStatus === 'verified' 
                         ? 'bg-green-100 text-green-800' 
-                        : selectedVolunteer.volunteerProfile?.kycStatus === 'pending'
+                        : selectedVolunteer.volunteerProfile?.kycStatus === 'pending' && (selectedVolunteer.volunteerProfile?.governmentIdUrl || selectedVolunteer.volunteerProfile?.proofOfAddressUrl)
                         ? 'bg-yellow-100 text-yellow-800'
+                        : selectedVolunteer.volunteerProfile?.kycStatus === 'on_progress'
+                        ? 'bg-blue-100 text-blue-800'
+                        : selectedVolunteer.volunteerProfile?.kycStatus === 'rejected'
+                        ? 'bg-red-100 text-red-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {selectedVolunteer.volunteerProfile?.kycStatus?.toUpperCase() || 'NOT VERIFIED'}
+                      {(() => {
+                        const kycStatus = selectedVolunteer.volunteerProfile?.kycStatus;
+                        const hasKycDocuments = selectedVolunteer.volunteerProfile?.governmentIdUrl || selectedVolunteer.volunteerProfile?.proofOfAddressUrl;
+                        
+                        if (kycStatus === 'verified') {
+                          return 'VERIFIED';
+                        } else if (kycStatus === 'pending' && hasKycDocuments) {
+                          return 'PENDING';
+                        } else if (kycStatus === 'on_progress') {
+                          return 'IN PROGRESS';
+                        } else if (kycStatus === 'rejected') {
+                          return 'REJECTED';
+                        } else {
+                          return 'BASIC';
+                        }
+                      })()}
                     </div>
                     {selectedVolunteer.volunteerProfile?.kycStatus === 'verified' && (
                       <div className="text-xs text-green-700 mt-1">
