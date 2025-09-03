@@ -31,7 +31,7 @@ const paymentMethods = [
   { value: "card", label: "Credit/Debit Card", icon: CreditCard },
 ];
 
-export function DepositModal({ showText = true }: { showText?: boolean }) {
+export function DepositModal({ showText = true, className }: { showText?: boolean; className?: string }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -134,7 +134,7 @@ export function DepositModal({ showText = true }: { showText?: boolean }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2" data-testid="button-deposit">
+        <Button className={`flex items-center gap-2 ${className || ''}`} data-testid="button-deposit">
           <Wallet className="w-4 h-4" />
           {showText && "Deposit"}
         </Button>

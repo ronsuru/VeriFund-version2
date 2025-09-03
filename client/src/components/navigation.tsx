@@ -62,13 +62,9 @@ export default function Navigation({ variant = 'floating', hideAdminProfileLink 
   const unreadCount = notifications?.filter((n) => !n.isRead)?.length || 0;
 
 
-  const navItems = [
-    { href: "/my-profile", label: "My Profile" },
-  ];
+  const navItems: Array<{ href: string; label: string }> = [];
 
-  const adminNavItems = hideAdminProfileLink ? [] : [
-    { href: "/my-profile", label: "My Profile" },
-  ];
+  const adminNavItems: Array<{ href: string; label: string }> = [];
 
   const containerPositionClass = variant === 'floating'
     ? 'fixed top-4 left-1/2 transform -translate-x-1/2 w-full max-w-7xl px-4'
@@ -432,19 +428,404 @@ onClick={() => {
               </div>
             )}
 
-            {/* Mobile wallet icon, logout button and menu button - show only when authenticated */}
+            {/* Mobile notification bell and menu button - show only when authenticated */}
             {isAuthenticated && (
               <div className="md:hidden flex items-center gap-2">
-                {/* Wallet icon for regular users only, not admin/support */}
-                {user && !(user as any)?.isAdmin && !(user as any)?.isSupport && (
-                  <div className="p-2">
-                    <DepositModal showText={false} />
+                {/* Notification bell for all users */}
+                <button
+                  className="p-2 relative"
+                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  data-testid="button-notification-mobile"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  className="p-2"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  data-testid="button-mobile-menu"
+                >
+                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {isMobileMenuOpen && isAuthenticated && (
+          <div className="md:hidden border-t border-gray-200/50 backdrop-blur-xl bg-white/95 shadow-2xl rounded-b-3xl overflow-hidden">
+            <div className="p-4 space-y-4">
+              {/* User Profile Section */}
+              <div className="relative bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-100">
+                {/* Shield Badge for Verified Users */}
+                {(() => {
+                  const kycStatus = (user as any)?.kycStatus?.toLowerCase();
+                  if (kycStatus === 'verified' || kycStatus === 'approved') {
+                    return (
+                      <div className="absolute top-3 right-3 bg-green-500 rounded-full p-3 border-2 border-white shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield w-5 h-5 text-white fill-current">
+                          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path>
+                        </svg>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-200">
+                    {(user as any)?.profileImageUrl ? (
+                      <img 
+                        src={(user as any).profileImageUrl} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div class="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm">
+                                  ${(user as any)?.firstName?.charAt(0) || (user as any)?.email?.charAt(0) || 'U'}
+                                </span>
+                              </div>
+                            `;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {(user as any)?.firstName?.charAt(0) || (user as any)?.email?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {/* Logout button for mobile */}
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <p className="font-semibold text-gray-900">
+                        {(user as any)?.firstName} {(user as any)?.lastName}
+                      </p>
+                      {(() => {
+                        const kycStatus = (user as any)?.kycStatus?.toLowerCase();
+                        if (kycStatus === 'verified' || kycStatus === 'approved') {
+                          return (
+                            <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                              ✓ Verified
+                            </Badge>
+                          );
+                        } else if (kycStatus === 'pending' || kycStatus === 'on_progress') {
+                          return (
+                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs">
+                              ⏳ Pending
+                            </Badge>
+                          );
+                        } else if (kycStatus === 'rejected') {
+                          return (
+                            <Badge className="bg-red-100 text-red-800 border-red-200 text-xs">
+                              ✗ Rejected
+                            </Badge>
+                          );
+                        } else {
+                          return (
+                            <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">
+                              ⭕ Unverified
+                            </Badge>
+                          );
+                        }
+                      })()}
+                    </div>
+                    <p className="text-sm text-gray-600 truncate">
+                      {(user as any)?.email}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/my-profile"
+                  className={`mt-3 block w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    location === "/my-profile"
+                      ? "bg-green-600 text-white shadow-lg"
+                      : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  👤 View My Profile
+                </Link>
+              </div>
+
+              {/* Regular User Mobile Menu */}
+              {!(user as any)?.isAdmin && !(user as any)?.isSupport && (
+                <>
+                  {/* My Opportunities Section */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-100">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xs">🎯</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900">My Opportunities</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <Link 
+                        href="/browse-campaigns"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/browse-campaigns"
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📋</span>
+                        <span>Campaign Opportunities</span>
+                      </Link>
+                      <Link 
+                        href="/volunteer"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/volunteer"
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">🤝</span>
+                        <span>Volunteer Opportunities</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* My Campaigns Section */}
+                  <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-2xl p-4 border border-purple-100">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xs">🚀</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900">My Campaigns</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <Link 
+                        href="/campaigns"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/campaigns"
+                            ? "bg-purple-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📊</span>
+                        <span>Campaign Overview</span>
+                      </Link>
+                      <Link 
+                        href="/volunteer-applications"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/volunteer-applications"
+                            ? "bg-purple-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📝</span>
+                        <span>Volunteer Applications</span>
+                      </Link>
+                    </div>
+                  </div>
+
+
+                </>
+              )}
+
+              {/* Admin/Support Mobile Menu */}
+              {((user as any)?.isAdmin || (user as any)?.isSupport) && (
+                <>
+                  {/* Admin Dashboard Section */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-100">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xs">⚙️</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900">Admin Dashboard</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <Link 
+                        href="/admin?tab=insights"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=insights')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📊</span>
+                        <span>Insights</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=kyc"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=kyc')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">🆔</span>
+                        <span>KYC Management</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=campaigns"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=campaigns')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">🎯</span>
+                        <span>Campaigns</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=reports"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=reports')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📈</span>
+                        <span>Reports</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* My Works Section */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-100">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-xs">💼</span>
+                      </div>
+                      <h3 className="font-semibold text-gray-900">My Works</h3>
+                    </div>
+                    <div className="space-y-2">
+                      <Link 
+                        href="/admin?tab=my-works"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && (window.location.search.includes('tab=my-works') || !window.location.search)
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📋</span>
+                        <span>Overview</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=volunteers"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=volunteers')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">👥</span>
+                        <span>Volunteers</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=financial"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=financial')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">💰</span>
+                        <span>Financial</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=stories"
+                        className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=stories')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">📖</span>
+                        <span>Stories</span>
+                      </Link>
+                      {(user as any)?.isAdmin && (
+                        <>
+                          <Link 
+                            href="/admin?tab=access"
+                            className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                              location === "/admin" && window.location.search.includes('tab=access')
+                                ? "bg-green-600 text-white shadow-lg"
+                                : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                            }`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <span className="text-lg">🔐</span>
+                            <span>Access</span>
+                          </Link>
+                          <Link 
+                            href="/admin?tab=invites"
+                            className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                              location === "/admin" && window.location.search.includes('tab=invites')
+                                ? "bg-green-600 text-white shadow-lg"
+                                : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                            }`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <span className="text-lg">📧</span>
+                            <span>Invites</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Wallet Balance Section for regular users only, not admin/support */}
+              {user && !(user as any)?.isAdmin && !(user as any)?.isSupport && (
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <Coins className="text-white w-3 h-3" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900">Wallet Balance</h3>
+                    </div>
+                    <DepositModal 
+                      showText={true} 
+                      className="bg-white border-green-200 hover:border-green-300 hover:bg-green-50 h-8 px-3 text-sm"
+                    />
+                  </div>
+                  <div className="bg-white/70 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl font-bold text-gray-900">
+                        ₱{parseFloat((user as any).phpBalance || "0").toLocaleString()}
+                      </span>
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">PHP</Badge>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Available
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Logout Button - Always at the bottom */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl p-4 border border-gray-100">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
+                  className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 hover:border-red-300 transition-all duration-200"
                   onClick={async () => {
                     try {
                       // Sign out from Supabase (clears OAuth tokens)
@@ -462,262 +843,10 @@ onClick={() => {
                   }}
                   data-testid="button-logout-mobile"
                 >
-                  <Power className="w-4 h-4" />
+                  <Power className="w-4 h-4 mr-2" />
+                  Sign Out
                 </Button>
-                <button
-                  className="p-2"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  data-testid="button-mobile-menu"
-                >
-                  {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {isMobileMenuOpen && isAuthenticated && (
-<div className="md:hidden border-t py-4 rounded-b-2xl bg-card/95">            <div className="flex flex-col space-y-2">
-              {/* Regular User Mobile Menu */}
-              {!(user as any)?.isAdmin && !(user as any)?.isSupport && (
-                <>
-                  {/* My Opportunities - Mobile */}
-                  <div className="px-3 py-2 text-sm font-medium text-gray-700">
-                    My Opportunities
-                  </div>
-              <div className="ml-4 space-y-1">
-                <Link 
-                  href="/browse-campaigns"
-                  className={`block px-3 py-2 rounded-md text-sm ${
-                    location === "/browse-campaigns"
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-600"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Campaign Opportunities
-                </Link>
-                <Link 
-                  href="/volunteer"
-                  className={`block px-3 py-2 rounded-md text-sm ${
-                    location === "/volunteer"
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-600"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Volunteer Opportunities
-                </Link>
-              </div>
-
-              {/* My Campaigns - Mobile */}
-              <div className="px-3 py-2 text-sm font-medium text-gray-700">
-                My Campaigns
-              </div>
-              <div className="ml-4 space-y-1">
-                <Link 
-                  href="/campaigns"
-                  className={`block px-3 py-2 rounded-md text-sm ${
-                    location === "/campaigns"
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-600"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Campaign Overview
-                </Link>
-                <Link 
-                  href="/volunteer-applications"
-                  className={`block px-3 py-2 rounded-md text-sm ${
-                    location === "/volunteer-applications"
-                      ? "text-primary bg-primary/10"
-                      : "text-gray-600"
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Volunteer Applications
-                </Link>
-              </div>
-
-                  {/* Regular Navigation Items */}
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        location === item.href
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-700"
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </>
-              )}
-
-              {/* Admin/Support Mobile Menu */}
-              {((user as any)?.isAdmin || (user as any)?.isSupport) && (
-                <>
-                  <div className="px-3 py-2 text-sm font-medium text-gray-700">
-                    Admin Functions
-                  </div>
-                  <div className="ml-4 space-y-1">
-                    {/* My Works Section - Mobile */}
-                    <div className="px-3 py-2 text-sm font-medium text-gray-700">
-                      My Works
-                    </div>
-                    <div className="ml-4 space-y-1">
-                      <Link 
-                        href="/admin?tab=my-works"
-                        className={`block px-3 py-2 rounded-md text-sm ${
-                          location === "/admin" && (window.location.search.includes('tab=my-works') || !window.location.search)
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Overview
-                      </Link>
-                      <Link 
-                        href="/admin?tab=volunteers"
-                        className={`block px-3 py-2 rounded-md text-sm ${
-                          location === "/admin" && window.location.search.includes('tab=volunteers')
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Volunteers
-                      </Link>
-                      <Link 
-                        href="/admin?tab=financial"
-                        className={`block px-3 py-2 rounded-md text-sm ${
-                          location === "/admin" && window.location.search.includes('tab=financial')
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Financial
-                      </Link>
-                      <Link 
-                        href="/admin?tab=stories"
-                        className={`block px-3 py-2 rounded-md text-sm ${
-                          location === "/admin" && window.location.search.includes('tab=stories')
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Stories
-                      </Link>
-                      {(user as any)?.isAdmin && (
-                        <>
-                          <Link 
-                            href="/admin?tab=access"
-                            className={`block px-3 py-2 rounded-md text-sm ${
-                              location === "/admin" && window.location.search.includes('tab=access')
-                                ? "text-primary bg-primary/10"
-                                : "text-gray-600"
-                            }`}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            Access
-                          </Link>
-                          <Link 
-                            href="/admin?tab=invites"
-                            className={`block px-3 py-2 rounded-md text-sm ${
-                              location === "/admin" && window.location.search.includes('tab=invites')
-                                ? "text-primary bg-primary/10"
-                                : "text-gray-600"
-                            }`}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            Invites
-                          </Link>
-                        </>
-                      )}
-                    </div>
-
-                    <Link 
-                      href="/admin?tab=insights"
-                      className={`block px-3 py-2 rounded-md text-sm ${
-                        location === "/admin" && window.location.search.includes('tab=insights')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Insights
-                    </Link>
-                    <Link 
-                      href="/admin?tab=kyc"
-                      className={`block px-3 py-2 rounded-md text-sm ${
-                        location === "/admin" && window.location.search.includes('tab=kyc')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      KYC
-                    </Link>
-                    <Link 
-                      href="/admin?tab=campaigns"
-                      className={`block px-3 py-2 rounded-md text-sm ${
-                        location === "/admin" && window.location.search.includes('tab=campaigns')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Campaigns
-                    </Link>
-                    <Link 
-                      href="/admin?tab=reports"
-                      className={`block px-3 py-2 rounded-md text-sm ${
-                        location === "/admin" && window.location.search.includes('tab=reports')
-                          ? "text-primary bg-primary/10"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Reports
-                    </Link>
-                    {/* Admin Navigation Items - Mobile */}
-                    {adminNavItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`block px-3 py-2 rounded-md text-sm ${
-                          location === item.href
-                            ? "text-primary bg-primary/10"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* Wallet Balance and Deposit Button for regular users only, not admin/support */}
-              {user && !(user as any)?.isAdmin && !(user as any)?.isSupport && (
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg">
-                    <Coins className="text-accent w-4 h-4" />
-                    <span className="text-sm font-medium">
-                      ₱{parseFloat((user as any).phpBalance || "0").toLocaleString()}
-                    </span>
-                    <Badge variant="secondary" className="text-xs">PHP</Badge>
-                  </div>
-
-                </div>
-              )}
             </div>
           </div>
         )}

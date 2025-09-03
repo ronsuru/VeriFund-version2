@@ -628,6 +628,7 @@ export class DatabaseStorage implements IStorage {
     firstName?: string;
     middleInitial?: string;
     lastName?: string;
+    displayName?: string;
     contactNumber?: string;
     email?: string;
     birthday?: Date | string;

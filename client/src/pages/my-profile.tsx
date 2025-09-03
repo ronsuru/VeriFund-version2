@@ -126,8 +126,10 @@ export default function MyProfile() {
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isSupportTicketModalOpen, setIsSupportTicketModalOpen] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
-const [showCropper, setShowCropper] = useState(false);
-  const [pfpCacheBust, setPfpCacheBust] = useState<number>(0);  // Tip claiming form setup
+  const [showCropper, setShowCropper] = useState(false);
+  const [pfpCacheBust, setPfpCacheBust] = useState<number>(0);
+  const [editingNickname, setEditingNickname] = useState(false);
+  const [nicknameValue, setNicknameValue] = useState('');  // Tip claiming form setup
   const claimTipForm = useForm<z.infer<typeof claimTipFormSchema>>({
     resolver: zodResolver(claimTipFormSchema),
     defaultValues: {
@@ -290,6 +292,39 @@ const [showCropper, setShowCropper] = useState(false);
     },
   });
 
+  const updateNicknameMutation = useMutation({
+    mutationFn: async (data: { displayName: string }) => {
+      return await apiRequest("PUT", "/api/user/profile", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Nickname Updated! 🎉",
+        description: "Your display name has been updated successfully.",
+      });
+      setEditingNickname(false);
+    },
+    onError: (error: any) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 500);
+        return;
+      }
+      console.error('Nickname update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update nickname. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createSupportTicketMutation = useMutation({
     mutationFn: async (data: SupportTicketFormData) => {
       const attachmentUrls = attachments.length > 0 
@@ -369,6 +404,24 @@ const [showCropper, setShowCropper] = useState(false);
     );
   }
 
+  // Nickname editing functions
+  const handleNicknameEdit = () => {
+    const currentNickname = (user as any)?.displayName || `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || '';
+    setNicknameValue(currentNickname);
+    setEditingNickname(true);
+  };
+
+  const handleNicknameSave = () => {
+    if (nicknameValue.trim()) {
+      updateNicknameMutation.mutate({ displayName: nicknameValue.trim() });
+    }
+  };
+
+  const handleNicknameCancel = () => {
+    setEditingNickname(false);
+    setNicknameValue('');
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background">
@@ -434,9 +487,9 @@ const [showCropper, setShowCropper] = useState(false);
           <p className="text-gray-600 mt-2">Manage your account information and track your VeriFund journey</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
           {/* Profile Information Card */}
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1 space-y-6">
             <Card>
               <CardHeader className="text-center">
                 <div className="relative mx-auto mb-4">
@@ -467,7 +520,50 @@ const [showCropper, setShowCropper] = useState(false);
                   )}
                 </div>
                 <CardTitle className="flex items-center justify-center space-x-2">
-                  <span>{(user as any)?.firstName} {(user as any)?.lastName}</span>
+                  {editingNickname ? (
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        value={nicknameValue}
+                        onChange={(e) => setNicknameValue(e.target.value)}
+                        className="text-center text-lg font-semibold w-40"
+                        placeholder="Enter nickname"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleNicknameSave();
+                          } else if (e.key === 'Escape') {
+                            handleNicknameCancel();
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleNicknameSave}
+                        className="p-1 hover:bg-green-100 rounded-full transition-colors"
+                        title="Save nickname"
+                        disabled={updateNicknameMutation.isPending}
+                      >
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      </button>
+                      <button
+                        onClick={handleNicknameCancel}
+                        className="p-1 hover:bg-red-100 rounded-full transition-colors"
+                        title="Cancel editing"
+                      >
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{(user as any)?.displayName || `${(user as any)?.firstName || ''} ${(user as any)?.lastName || ''}`.trim() || 'User'}</span>
+                      <button
+                        onClick={handleNicknameEdit}
+                        className="ml-2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Edit nickname"
+                      >
+                        <Edit className="w-4 h-4 text-gray-500 hover:text-gray-700" />
+                      </button>
+                    </>
+                  )}
                 </CardTitle>
                 <div className="flex justify-center mt-2">
                   {getKycStatusBadge()}
@@ -892,7 +988,7 @@ const [showCropper, setShowCropper] = useState(false);
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="xl:col-span-3 space-y-6">
             {/* Wallet Overview */}
             <Card>
               <CardHeader>
@@ -1070,7 +1166,7 @@ const [showCropper, setShowCropper] = useState(false);
             </Card>
 
             {/* Analytics & Milestones */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Analytics */}
               <Card>
                 <CardHeader>
@@ -1080,25 +1176,27 @@ const [showCropper, setShowCropper] = useState(false);
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Campaigns Created</span>
-                    <span className="font-semibold">{(userCampaigns as any[]).length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Raised</span>
-                    <span className="font-semibold">₱{totalRaised.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Contributed</span>
-                    <span className="font-semibold">₱{totalContributed.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Successful Campaigns</span>
-                    <span className="font-semibold">{successfulCampaigns}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Total Transactions</span>
-                    <span className="font-semibold">{(userTransactions as any[]).length}</span>
+                  <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                      <div className="text-2xl font-bold text-blue-600">{(userCampaigns as any[]).length}</div>
+                      <div className="text-sm text-blue-700">Campaigns Created</div>
+                    </div>
+                    <div className="p-4 bg-green-50 rounded-xl border border-green-100">
+                      <div className="text-2xl font-bold text-green-600">₱{totalRaised.toLocaleString()}</div>
+                      <div className="text-sm text-green-700">Total Raised</div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                      <div className="text-2xl font-bold text-purple-600">₱{totalContributed.toLocaleString()}</div>
+                      <div className="text-sm text-purple-700">Total Contributed</div>
+                    </div>
+                    <div className="p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                      <div className="text-2xl font-bold text-yellow-600">{successfulCampaigns}</div>
+                      <div className="text-sm text-yellow-700">Successful Campaigns</div>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 col-span-2 xl:col-span-1">
+                      <div className="text-2xl font-bold text-gray-600">{(userTransactions as any[]).length}</div>
+                      <div className="text-sm text-gray-700">Total Transactions</div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1141,7 +1239,7 @@ const [showCropper, setShowCropper] = useState(false);
             </div>
 
                          {/* Recent Contributions & Tips */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                {/* Recent Contributions */}
                <Card>
                  <CardHeader>

@@ -252,7 +252,8 @@ export async function setupAuth(app: any) {
               email: dbUser.email,
               firstName: dbUser.firstName,
               lastName: dbUser.lastName,
-profileImageUrl: dbUser.profileImageUrl,
+              displayName: dbUser.displayName,
+              profileImageUrl: dbUser.profileImageUrl,
               kycStatus: dbUser.kycStatus,
               rejectionReason: dbUser.rejectionReason, // Include rejection reason for KYC status display
               isProfileComplete: dbUser.isProfileComplete || false,
@@ -331,6 +332,7 @@ profileImageUrl: (user.user_metadata as any)?.avatar_url || null,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
+            displayName: user.displayName,
             kycStatus: user.kycStatus,
             rejectionReason: user.rejectionReason, // Include rejection reason for KYC status display
             phpBalance: user.phpBalance || '0',

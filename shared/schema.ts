@@ -36,6 +36,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   middleInitial: varchar("middle_initial", { length: 5 }),
   lastName: varchar("last_name"),
+  displayName: varchar("display_name"), // User's preferred display name/nickname
   birthday: timestamp("birthday"),
   funFacts: text("fun_facts"),
   profileImageUrl: varchar("profile_image_url"),
