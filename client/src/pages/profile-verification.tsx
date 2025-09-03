@@ -31,7 +31,8 @@ import {
   Phone,
   MapPin,
   Building,
-  Linkedin
+  Linkedin,
+  X
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -69,7 +70,7 @@ export default function ProfileVerification() {
   const [currentStep, setCurrentStep] = useState(1);
   const [profileImageUrl, setProfileImageUrl] = useState<string>("");
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string>("");
-  const [kycDocuments, setKycDocuments] = useState<{ [key: string]: string }>({});
+  const [kycDocuments, setKycDocuments] = useState<{ [key: string]: { uploadURL: string; previewURL: string; fileName: string } }>({});
   const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof profileVerificationSchema>>({
@@ -158,7 +159,23 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        return;
       });
       return;
     }
-    submitKycMutation.mutate(kycDocuments);
+    // Extract just the upload URLs for submission
+    const uploadUrls = Object.fromEntries(
+      Object.entries(kycDocuments).map(([key, value]) => [key, value.uploadURL])
+    );
+    submitKycMutation.mutate(uploadUrls);
+  };
+
+  const handleRemoveDocument = (type: string) => {
+    setKycDocuments(prev => {
+      const newDocs = { ...prev };
+      delete newDocs[type];
+      return newDocs;
+    });
+    toast({
+      title: "Document Removed",
+      description: `${type.replace('_', ' ')} has been removed. You can upload a new one.`,
+    });
   };
 
   const handleFileUpload = async (type: string, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,8 +215,15 @@ const { supabase } = await import('@/supabaseClient');
         ? `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`
         : uploadURL;
 
-      // Store the upload URL for backend normalization
-      setKycDocuments(prev => ({ ...prev, [type]: uploadURL }));
+      // Store the upload URL and preview URL for display
+      setKycDocuments(prev => ({ 
+        ...prev, 
+        [type]: { 
+          uploadURL, 
+          previewURL: previewUrl, 
+          fileName: file.name 
+        } 
+      }));
       
       // Optionally you could set a local preview map here if needed
       toast({
@@ -394,30 +418,35 @@ const response = await apiRequest("PUT", "/api/user/profile-picture", requestDat
                         const data = await response.json();
                         console.log("Profile picture response:", data);
 
-                        // Prefer server-provided public URL; otherwise build from objectPath; lastly proxy via /objects
-                        const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
-                        const bucket = ((import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET as string | undefined) || 'verifund-assets';
-                        const objectPath: string | undefined = data.objectPath;
+                        // Use the server-provided profileImageUrl directly
                         let finalUrl: string = data.profileImageUrl || '';
-                        if ((!finalUrl || !/^https?:\/\//.test(finalUrl)) && objectPath) {
+                        
+                        // Fallback: if server didn't provide a URL, build from objectPath
+                        if (!finalUrl && data.objectPath) {
+                          const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+                          const bucket = ((import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET as string | undefined) || 'verifund-assets';
                           if (supabaseUrl) {
-                            finalUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`;
+                            finalUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${data.objectPath}`;
                           } else {
-                            finalUrl = `/objects/${objectPath}`;
+                            finalUrl = `/objects/${data.objectPath}`;
                           }
                         }
+                        
+                        // Ensure URL is properly formatted
                         if (finalUrl && !finalUrl.startsWith('http') && !finalUrl.startsWith('/')) {
                           finalUrl = `/${finalUrl}`;
                         }
 
                         if (finalUrl) {
                           setUploadedImagePreview(finalUrl);
-                          setProfileImageUrl(finalUrl);                          toast({
+                          setProfileImageUrl(finalUrl);
+                          toast({
                             title: "Profile Picture Set!",
                             description: "Your profile picture has been uploaded and set successfully.",
                           });
                         } else {
-throw new Error("No preview URL available from server");                        }
+                          throw new Error("No preview URL available from server");
+                        }
                       } catch (error) {
                         console.error("Error setting profile picture:", error);
                         toast({
@@ -696,9 +725,39 @@ throw new Error("No preview URL available from server");                        
                       Choose File
                     </label>
                     {kycDocuments.valid_id && (
-                      <div className="mt-2 flex items-center justify-center text-green-600">
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        <span className="text-sm">Uploaded</span>
+                      <div className="mt-4 space-y-3">
+                        {/* Document Preview */}
+                        <div className="relative">
+                          <img 
+                            src={kycDocuments.valid_id.previewURL} 
+                            alt="Government ID"
+                            className="w-full h-32 object-cover rounded-lg border"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                          <div className="hidden w-full h-32 bg-gray-100 rounded-lg border items-center justify-center">
+                            <FileText className="w-8 h-8 text-gray-400 mx-auto" />
+                          </div>
+                          
+                          {/* Remove Button */}
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 h-6 w-6 p-0"
+                            onClick={() => handleRemoveDocument('valid_id')}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        
+                        {/* Upload Status */}
+                        <div className="flex items-center justify-center text-green-600">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          <span className="text-sm">{kycDocuments.valid_id.fileName}</span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -727,9 +786,39 @@ throw new Error("No preview URL available from server");                        
                       Choose File
                     </label>
                     {kycDocuments.proof_of_address && (
-                      <div className="mt-2 flex items-center justify-center text-green-600">
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        <span className="text-sm">Uploaded</span>
+                      <div className="mt-4 space-y-3">
+                        {/* Document Preview */}
+                        <div className="relative">
+                          <img 
+                            src={kycDocuments.proof_of_address.previewURL} 
+                            alt="Proof of Address"
+                            className="w-full h-32 object-cover rounded-lg border"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                          <div className="hidden w-full h-32 bg-gray-100 rounded-lg border items-center justify-center">
+                            <FileText className="w-8 h-8 text-gray-400 mx-auto" />
+                          </div>
+                          
+                          {/* Remove Button */}
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 h-6 w-6 p-0"
+                            onClick={() => handleRemoveDocument('proof_of_address')}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        
+                        {/* Upload Status */}
+                        <div className="flex items-center justify-center text-green-600">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          <span className="text-sm">{kycDocuments.proof_of_address.fileName}</span>
+                        </div>
                       </div>
                     )}
                   </div>

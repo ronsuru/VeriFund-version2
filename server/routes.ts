@@ -3298,9 +3298,22 @@ const userId = req.user?.claims?.sub || req.user?.sub;
       
       if (actualDocuments.valid_id) {
         try {
-          const governmentIdPath = objectStorageService.normalizeObjectEntityPath(actualDocuments.valid_id);
-          documentUpdates.governmentIdUrl = governmentIdPath;
-          console.log('📄 Government ID path:', governmentIdPath);
+          // Convert upload URL to public URL
+          let objectPath = '';
+          if (actualDocuments.valid_id.startsWith('/api/upload?objectPath=')) {
+            const url = new URL(actualDocuments.valid_id, 'http://localhost');
+            objectPath = url.searchParams.get('objectPath') || '';
+          } else {
+            objectPath = actualDocuments.valid_id.replace(/^\/*/, '');
+          }
+          
+          // Generate public URL for viewing
+          const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+          console.log('📄 Government ID objectPath for getPublicUrl:', objectPath);
+          const publicUrl = await objectStorageService.getPublicUrl(bucketName, objectPath);
+          
+          documentUpdates.governmentIdUrl = publicUrl;
+          console.log('📄 Government ID public URL:', publicUrl);
         } catch (error) {
           console.error('Error processing government ID:', error);
         }
@@ -3308,9 +3321,22 @@ const userId = req.user?.claims?.sub || req.user?.sub;
       
       if (actualDocuments.proof_of_address) {
         try {
-          const proofOfAddressPath = objectStorageService.normalizeObjectEntityPath(actualDocuments.proof_of_address);
-          documentUpdates.proofOfAddressUrl = proofOfAddressPath;
-          console.log('📄 Proof of address path:', proofOfAddressPath);
+          // Convert upload URL to public URL
+          let objectPath = '';
+          if (actualDocuments.proof_of_address.startsWith('/api/upload?objectPath=')) {
+            const url = new URL(actualDocuments.proof_of_address, 'http://localhost');
+            objectPath = url.searchParams.get('objectPath') || '';
+          } else {
+            objectPath = actualDocuments.proof_of_address.replace(/^\/*/, '');
+          }
+          
+          // Generate public URL for viewing
+          const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+          console.log('📄 Proof of address objectPath for getPublicUrl:', objectPath);
+          const publicUrl = await objectStorageService.getPublicUrl(bucketName, objectPath);
+          
+          documentUpdates.proofOfAddressUrl = publicUrl;
+          console.log('📄 Proof of address public URL:', publicUrl);
         } catch (error) {
           console.error('Error processing proof of address:', error);
         }
@@ -3319,10 +3345,18 @@ const userId = req.user?.claims?.sub || req.user?.sub;
       // Update user with document URLs and KYC status
       console.log('🔄 About to update user with:', documentUpdates);
       
-      const updatedUser = await storage.updateUser(userId, {
+      const updateData = {
         ...documentUpdates,
-        kycStatus: 'pending'  // Changed to 'pending' for admin review
-      });
+        kycStatus: 'pending',  // Changed to 'pending' for admin review
+        claimedBy: null, // Clear claimedBy field so KYC can be claimed again
+        dateClaimed: null, // Clear dateClaimed field
+        processedByAdmin: null, // Clear processedByAdmin field
+        processedAt: null, // Clear processedAt field
+        dateEvaluated: null, // Clear dateEvaluated field
+        rejectionReason: null // Clear rejection reason for new submission
+      };
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
       
       console.log('✅ User updated successfully:', {
         userId: updatedUser.id,
@@ -3330,6 +3364,28 @@ const userId = req.user?.claims?.sub || req.user?.sub;
         proofOfAddressUrl: updatedUser.proofOfAddressUrl,
         kycStatus: updatedUser.kycStatus
       });
+      
+      // Notify all admins about the new KYC request
+      try {
+        const allUsers = await storage.getAllUsers();
+        const admins = allUsers.filter(user => user.isAdmin);
+        console.log(`📢 Notifying ${admins.length} admins about new KYC request from user ${userId}`);
+        
+        for (const admin of admins) {
+          await storage.createNotification({
+            userId: admin.id,
+            title: "New KYC Request 📋",
+            message: `User ${user.firstName} ${user.lastName} (${user.email}) has submitted KYC documents for verification.`,
+            type: "kyc_submitted",
+            relatedId: userId,
+          });
+        }
+        
+        console.log(`✅ Successfully notified ${admins.length} admins about new KYC request`);
+      } catch (notificationError) {
+        console.error('❌ Error notifying admins about KYC request:', notificationError);
+        // Don't fail the KYC submission if notification fails
+      }
       
       res.json({ message: "KYC documents submitted successfully" });
     } catch (error) {
@@ -3390,14 +3446,20 @@ try {
       const objectStorageService = new ObjectStorageService();
 let objectPath = '';
 
-      // Expect profileImageUrl like /api/upload?objectPath=public/profiles/<uid>/<file>.jpg
-      try {
-        const url = new URL(profileImageUrl, 'http://localhost');
-        const qp = url.searchParams.get('objectPath');
-        if (qp) objectPath = qp;
-      } catch {
-        // fallback: if client already sent an object path
-        objectPath = profileImageUrl.replace(/^\/*/, '');
+      // Handle different URL formats from client
+      if (profileImageUrl.startsWith('/public-objects/')) {
+        // Client sent processed URL like /public-objects/evidence/uid/filename
+        objectPath = `public/${profileImageUrl.replace(/^\/public-objects\//, '')}`;
+      } else {
+        // Expect profileImageUrl like /api/upload?objectPath=public/profiles/<uid>/<file>.jpg
+        try {
+          const url = new URL(profileImageUrl, 'http://localhost');
+          const qp = url.searchParams.get('objectPath');
+          if (qp) objectPath = qp;
+        } catch {
+          // fallback: if client already sent an object path
+          objectPath = profileImageUrl.replace(/^\/*/, '');
+        }
       }
 
       if (!objectPath.startsWith('public/')) {
@@ -3407,6 +3469,7 @@ let objectPath = '';
 
       // Build a public URL (works with RLS + public folder)
       const bucketName = process.env.SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+      // Supabase needs the full path including 'public/' for public URL generation
       const publicUrl = await objectStorageService.getPublicUrl(bucketName, objectPath);
 
       console.log('🔗 Final object path:', objectPath);
@@ -3414,7 +3477,9 @@ let objectPath = '';
 
       // Fallback: if public URL couldn't be built, serve via our proxy endpoint
       const appUrl = process.env.APP_URL || '';
-      const objectsUrl = appUrl ? `${appUrl}/objects/${objectPath}` : `/objects/${objectPath}`;
+      // For /objects/ endpoint, remove 'public/' prefix since it's handled by the endpoint
+      const cleanObjectPath = objectPath.startsWith('public/') ? objectPath.substring(7) : objectPath;
+      const objectsUrl = appUrl ? `${appUrl}/objects/${cleanObjectPath}` : `/objects/${cleanObjectPath}`;
 
       const finalProfileUrl = publicUrl && publicUrl.startsWith('http') ? publicUrl : objectsUrl;
 
@@ -3600,7 +3665,7 @@ let objectPath = '';
       console.log(`📋 Request data - userId: ${userId}, reason: ${reason}`);
       
       if (!userId || !reason) {
-        return res.status(400).json({ message: "User ID and rejection reason are required" });
+        return res.status(400).json({ message: "Please choose Reason" });
       }
 
       console.log(`📋 Attempting to reject KYC for user ${userId} with reason: ${reason}`);
@@ -3608,8 +3673,10 @@ let objectPath = '';
       // Update user KYC status with rejection reason and record admin who processed
       await storage.updateUserKYC(userId, "rejected", reason);
       await storage.updateUser(userId, {
-        processedByAdmin: adminUser.email,
-        processedAt: new Date()
+        processedByAdmin: null, // Clear processedByAdmin so KYC can be claimed again
+        processedAt: null, // Clear processedAt
+        claimedBy: null, // Clear the claimedBy field so KYC can be claimed again
+        dateClaimed: null // Clear the dateClaimed field
       });
 
       console.log(`📋 Admin ${adminUser.email} successfully rejected KYC for user ${userId}, reason: ${reason}`);
@@ -4891,7 +4958,7 @@ const staffUser = await storage.getUser(req.user?.claims?.sub || req.user?.sub);
       const userId = req.params.id;
       
       if (!reason) {
-        return res.status(400).json({ message: "Rejection reason is required" });
+        return res.status(400).json({ message: "Please choose Reason" });
       }
 
       console.log(`📋 Attempting to reject KYC for user ${userId} with reason: ${reason}`);
@@ -4899,9 +4966,11 @@ const staffUser = await storage.getUser(req.user?.claims?.sub || req.user?.sub);
       // Update user KYC status with rejection reason and record admin who processed
       await storage.updateUserKYC(userId, "rejected", reason);
       await storage.updateUser(userId, {
-        processedByAdmin: adminUser.email,
-        processedAt: new Date(),
-        dateEvaluated: new Date()
+        processedByAdmin: null, // Clear processedByAdmin so KYC can be claimed again
+        processedAt: null, // Clear processedAt
+        dateEvaluated: new Date(),
+        claimedBy: null, // Clear the claimedBy field so KYC can be claimed again
+        dateClaimed: null // Clear the dateClaimed field
       });
 
       // Create notification for user
@@ -5152,15 +5221,27 @@ const user = await storage.getUser(req.user?.claims?.sub || req.user?.sub);     
       const userId = req.params.id;
       const user = await storage.getUser(userId);
       
+      console.log(`🔍 Claim attempt for user ${userId}:`, {
+        userId: user?.id,
+        email: user?.email,
+        kycStatus: user?.kycStatus,
+        claimedBy: user?.claimedBy,
+        dateClaimed: user?.dateClaimed,
+        processedByAdmin: user?.processedByAdmin,
+        processedAt: user?.processedAt
+      });
+      
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       if (user.kycStatus !== "pending") {
+        console.log(`❌ KYC status is not pending: ${user.kycStatus}`);
         return res.status(400).json({ message: "KYC request is not in pending status" });
       }
 
       if (user.claimedBy) {
+        console.log(`❌ KYC is already claimed by: ${user.claimedBy}`);
         return res.status(400).json({ message: "KYC request is already claimed" });
       }
 

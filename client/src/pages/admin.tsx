@@ -1493,44 +1493,20 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
                   }}
                   trigger={
                     <div className="cursor-pointer group">
-                      <img 
-                        src={user.governmentIdUrl || user.government_id_url} 
-                        alt="Government ID" 
-                        className="w-full h-32 object-cover rounded hover:opacity-90 transition-opacity"
-                      />
+                      <div className="w-full h-32 bg-gray-100 rounded flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">Government ID</p>
+                          <p className="text-xs text-gray-400">Click to view</p>
+                        </div>
+                      </div>
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center">
                         <Eye className="text-white opacity-0 group-hover:opacity-100 w-6 h-6" />
                       </div>
                     </div>
                   }
                 />
-                <div className="mt-2 flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => window.open(user.governmentIdUrl || user.government_id_url, '_blank')}
-                    className="text-xs"
-                  >
-                    <Eye className="w-3 h-3 mr-1" />
-                    View Full
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = user.governmentIdUrl || user.government_id_url;
-                      link.download = 'government-id.jpg';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                    className="text-xs"
-                  >
-                    <Download className="w-3 h-3 mr-1" />
-                    Download
-                  </Button>
-                </div>
+
               </div>
             ) : (
               <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded flex flex-col items-center justify-center text-gray-500 border-2 border-dashed">
@@ -1561,44 +1537,20 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
                   }}
                   trigger={
                     <div className="cursor-pointer group">
-                      <img 
-                        src={user.proofOfAddressUrl || user.proof_of_address_url} 
-                        alt="Proof of Address" 
-                        className="w-full h-32 object-cover rounded hover:opacity-90 transition-opacity"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center">
+                      <div className="w-full h-32 bg-gray-100 rounded flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <div className="text-center">
+                          <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600">Proof of Address</p>
+                          <p className="text-xs text-gray-400">Click to view</p>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded flex items-center justify-center">
                         <Eye className="text-white opacity-0 group-hover:opacity-100 w-6 h-6" />
                       </div>
                     </div>
                   }
                 />
-                <div className="mt-2 flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => window.open(user.proofOfAddressUrl || user.proof_of_address_url, '_blank')}
-                    className="text-xs"
-                  >
-                    <Eye className="w-3 h-3 mr-1" />
-                    View Full
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => {
-                      const link = document.createElement('a');
-                      link.href = user.proofOfAddressUrl || user.proof_of_address_url;
-                      link.download = 'proof-of-address.jpg';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                    className="text-xs"
-                  >
-                    <Download className="w-3 h-3 mr-1" />
-                    Download
-                  </Button>
-                </div>
+
               </div>
             ) : (
               <div className="w-full h-32 bg-gray-100 dark:bg-gray-800 rounded flex flex-col items-center justify-center text-gray-500 border-2 border-dashed">
@@ -1611,22 +1563,7 @@ const reporterResponse = await apiRequest('GET', `/api/admin/users/${report.repo
         </div>
         
         {/* Document Actions */}
-        <div className="mt-4 flex gap-2">
-          <Button 
-            size="sm"
-            variant="outline"
-            className="text-xs"
-            onClick={() => {
-              toast({
-                title: "Request Clarification",
-                description: "A message has been sent to the user requesting clarification on their KYC documents.",
-              });
-            }}
-          >
-            <AlertTriangle className="w-3 h-3 mr-1" />
-            Request Clarification
-          </Button>
-        </div>
+
       </div>
 
       {/* Processing Information */}
@@ -2456,7 +2393,7 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
       console.log("⚠️ Admin Page: No reason provided, showing error toast");
       toast({
         title: "Reason Required",
-        description: "Please select or enter a reason for your decision.",
+        description: "Please choose Reason",
         variant: "destructive",
       });
       return;
@@ -3703,7 +3640,6 @@ function KYCSection() {
                 <h5 className="font-medium mb-2">Government ID</h5>
                 <DocumentViewer document={{
                   url: user.governmentIdUrl,
-                  type: 'government_id',
                   fileName: 'Government ID',
                   fileSize: 0,
                   description: 'Government issued identification document'
@@ -3715,7 +3651,6 @@ function KYCSection() {
                 <h5 className="font-medium mb-2">Proof of Address</h5>
                 <DocumentViewer document={{
                   url: user.proofOfAddressUrl,
-                  type: 'proof_of_address',
                   fileName: 'Proof of Address',
                   fileSize: 0,
                   description: 'Proof of residential address document'

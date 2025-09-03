@@ -82,6 +82,31 @@ type SupportTicketFormData = z.infer<typeof supportTicketFormSchema>;
 
 export default function MyProfile() {
   const { isAuthenticated, user, isLoading } = useAuth();
+
+  // Helper function to get verification button state
+  const getVerificationButtonState = () => {
+    const kycStatus = (user as any)?.kycStatus?.toLowerCase();
+    
+    if (kycStatus === 'rejected') {
+      return {
+        text: 'Rejected: Resubmit Verification',
+        className: 'w-full bg-red-600 hover:bg-red-700 text-white',
+        disabled: false
+      };
+    } else if (kycStatus === 'pending' || kycStatus === 'on_progress') {
+      return {
+        text: 'Pending Verification',
+        className: 'w-full bg-gray-400 text-white cursor-not-allowed',
+        disabled: true
+      };
+    } else {
+      return {
+        text: 'Complete Verification',
+        className: 'w-full',
+        disabled: false
+      };
+    }
+  };
   const { data: serverUser } = useQuery({ queryKey: ["/api/auth/user"] });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -498,14 +523,18 @@ const [showCropper, setShowCropper] = useState(false);
                   </div>
                 </div>
                 
-                {(user as any)?.kycStatus !== "verified" && (
-                  <Button 
-                    className="w-full"
-                    onClick={() => window.location.href = "/profile-verification"}
-                  >
-                    Complete Verification
-                  </Button>
-                )}
+                {(user as any)?.kycStatus !== "verified" && (() => {
+                  const buttonState = getVerificationButtonState();
+                  return (
+                    <Button 
+                      className={buttonState.className}
+                      onClick={() => !buttonState.disabled && (window.location.href = "/profile-verification")}
+                      disabled={buttonState.disabled}
+                    >
+                      {buttonState.text}
+                    </Button>
+                  );
+                })()}
               </CardContent>
             </Card>
 
@@ -820,24 +849,43 @@ const [showCropper, setShowCropper] = useState(false);
                     </div>
                   </div>
 
-{!["verified","approved"].includes(((user as any)?.kycStatus || '').toLowerCase()) && (                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-800 mb-3">
-                        <strong>Complete your verification to unlock all features:</strong>
-                      </p>
-                      <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• Create fundraising campaigns</li>
-                        <li>• Withdraw funds to your bank account</li>
-                        <li>• Access premium analytics</li>
-                        <li>• Build trust with contributors</li>
-                      </ul>
-                      <Button 
-                        className="mt-3"
-                        onClick={() => window.location.href = "/profile-verification"}
-                      >
-                        Complete Verification
-                      </Button>
-                    </div>
-                  )}
+{!["verified","approved"].includes(((user as any)?.kycStatus || '').toLowerCase()) && (() => {
+                    const buttonState = getVerificationButtonState();
+                    const isRejected = (user as any)?.kycStatus?.toLowerCase() === 'rejected';
+                    const isPending = (user as any)?.kycStatus?.toLowerCase() === 'pending' || (user as any)?.kycStatus?.toLowerCase() === 'on_progress';
+                    
+                    return (
+                      <div className={`mt-4 p-4 rounded-lg ${isRejected ? 'bg-red-50' : isPending ? 'bg-yellow-50' : 'bg-blue-50'}`}>
+                        <p className={`text-sm mb-3 ${isRejected ? 'text-red-800' : isPending ? 'text-yellow-800' : 'text-blue-800'}`}>
+                          <strong>
+                            {isRejected ? 'Your verification was rejected. Please resubmit your documents:' : 
+                             isPending ? 'Your verification is being reviewed. Please wait:' :
+                             'Complete your verification to unlock all features:'}
+                          </strong>
+                        </p>
+                        {!isRejected && (
+                          <ul className={`text-sm space-y-1 ${isPending ? 'text-yellow-700' : 'text-blue-700'}`}>
+                            <li>• Create fundraising campaigns</li>
+                            <li>• Withdraw funds to your bank account</li>
+                            <li>• Access premium analytics</li>
+                            <li>• Build trust with contributors</li>
+                          </ul>
+                        )}
+                        {isRejected && (user as any)?.rejectionReason && (
+                          <div className="mb-3 p-2 bg-red-100 rounded text-sm text-red-800">
+                            <strong>Rejection Reason:</strong> {(user as any).rejectionReason}
+                          </div>
+                        )}
+                        <Button 
+                          className={`mt-3 ${buttonState.className}`}
+                          onClick={() => !buttonState.disabled && (window.location.href = "/profile-verification")}
+                          disabled={buttonState.disabled}
+                        >
+                          {buttonState.text}
+                        </Button>
+                      </div>
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>

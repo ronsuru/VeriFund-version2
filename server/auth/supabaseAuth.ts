@@ -254,6 +254,7 @@ export async function setupAuth(app: any) {
               lastName: dbUser.lastName,
 profileImageUrl: dbUser.profileImageUrl,
               kycStatus: dbUser.kycStatus,
+              rejectionReason: dbUser.rejectionReason, // Include rejection reason for KYC status display
               isProfileComplete: dbUser.isProfileComplete || false,
               // Include balances so the client can display wallet immediately
               phpBalance: dbUser.phpBalance || '0',
@@ -330,13 +331,16 @@ profileImageUrl: (user.user_metadata as any)?.avatar_url || null,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-phpBalance: user.phpBalance || '0',
+            kycStatus: user.kycStatus,
+            rejectionReason: user.rejectionReason, // Include rejection reason for KYC status display
+            phpBalance: user.phpBalance || '0',
             tipsBalance: user.tipsBalance || '0',
             contributionsBalance: user.contributionsBalance || '0',
             // Include user scores for profile display
             reliabilityScore: user.reliabilityScore || '0.00',
             reliabilityRatingsCount: user.reliabilityRatingsCount || 0,
-            socialScore: user.socialScore || 0,            isAdmin: req.session.isAdmin || false,
+            socialScore: user.socialScore || 0,
+            isAdmin: req.session.isAdmin || false,
             isSupport: user.isSupport || false,
           });
         }

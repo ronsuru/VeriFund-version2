@@ -54,19 +54,44 @@ export function DocumentViewer({ document, trigger, className, externalShow, onE
 
   const getFileType = (mime: string, url: string) => {
     const extension = getFileExtension(url);
-    if (mime.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
+    
+    // Debug logging
+    console.log('🔍 DocumentViewer file type detection:', {
+      url,
+      mime,
+      extension,
+      fileName
+    });
+    
+    // First check by MIME type if it's a valid MIME type
+    if (mime && mime !== 'application/octet-stream' && !mime.includes('_')) {
+      if (mime.startsWith('image/')) return 'image';
+      if (mime.startsWith('video/')) return 'video';
+      if (mime.startsWith('audio/')) return 'audio';
+      if (mime === 'application/pdf') return 'pdf';
+    }
+    
+    // Then check by file extension (this is more reliable for our use case)
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff'].includes(extension)) {
       return 'image';
-    } else if (mime.startsWith('video/') || ['mp4', 'avi', 'mov', 'wmv', 'webm'].includes(extension)) {
+    } else if (['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv', 'flv'].includes(extension)) {
       return 'video';
-    } else if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'aac'].includes(extension)) {
+    } else if (['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(extension)) {
       return 'audio';
-    } else if (mime === 'application/pdf' || extension === 'pdf') {
+    } else if (extension === 'pdf') {
       return 'pdf';
-    } else if (['doc', 'docx', 'txt', 'rtf'].includes(extension)) {
+    } else if (['doc', 'docx', 'txt', 'rtf', 'odt'].includes(extension)) {
       return 'document';
-    } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+    } else if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(extension)) {
       return 'archive';
     }
+    
+    // Special case: if URL contains common image patterns, treat as image
+    if (url.includes('evidence/') || url.includes('government') || url.includes('address')) {
+      console.log('🔍 Detected KYC document URL, treating as image');
+      return 'image';
+    }
+    
     return 'other';
   };
 
@@ -85,7 +110,7 @@ export function DocumentViewer({ document, trigger, className, externalShow, onE
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return 'Unknown size';
+    if (bytes === 0) return 'Image file';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -108,14 +133,41 @@ export function DocumentViewer({ document, trigger, className, externalShow, onE
     
     setIsLoading(true);
     try {
-      // Check if it's an object storage path and convert it
+      // Use the same URL conversion logic as the preview
       let downloadUrl = fileUrl;
       if (fileUrl.startsWith('/objects/')) {
         downloadUrl = fileUrl; // Object storage endpoint will handle serving
       } else if (fileUrl.startsWith('http')) {
-        downloadUrl = fileUrl; // Direct URL
+        downloadUrl = fileUrl; // Direct URL (Supabase public URL)
+      } else if (fileUrl.startsWith('/api/upload') || fileUrl.startsWith('api/upload')) {
+        // Convert upload URL to public URL
+        try {
+          const fullUrl = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`;
+          const url = new URL(fullUrl, window.location.origin);
+          const objectPath = url.searchParams.get('objectPath');
+          if (objectPath) {
+            const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
+            const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+            if (supabaseUrl) {
+              // Keep the public/ prefix for Supabase URLs
+              downloadUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`;
+            } else {
+              downloadUrl = `/objects/${objectPath}`;
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to convert upload URL for download:', error);
+          // Fallback: try to extract objectPath manually
+          const match = fileUrl.match(/objectPath=([^&]+)/);
+          if (match) {
+            const objectPath = decodeURIComponent(match[1]);
+            downloadUrl = `/objects/${objectPath}`;
+          } else {
+            downloadUrl = `/objects/${fileUrl}`;
+          }
+        }
       } else {
-        downloadUrl = `/public-objects/${fileUrl}`; // Assume public object
+        downloadUrl = `/objects/${fileUrl}`; // Assume object path
       }
       
       window.open(downloadUrl, '_blank');
@@ -138,14 +190,45 @@ export function DocumentViewer({ document, trigger, className, externalShow, onE
 
     // Convert object storage paths to viewable URLs
     let viewUrl = fileUrl;
+    console.log('🔍 DocumentViewer URL conversion:', { originalUrl: fileUrl, fileType });
+    
     if (fileUrl.startsWith('/objects/')) {
       viewUrl = fileUrl; // Object storage endpoint will handle serving
     } else if (fileUrl.startsWith('http')) {
-      viewUrl = fileUrl; // Direct URL
+      viewUrl = fileUrl; // Direct URL (Supabase public URL)
+    } else if (fileUrl.startsWith('/api/upload') || fileUrl.startsWith('api/upload')) {
+      // Convert upload URL to public URL
+      try {
+        const fullUrl = fileUrl.startsWith('/') ? fileUrl : `/${fileUrl}`;
+        const url = new URL(fullUrl, window.location.origin);
+        const objectPath = url.searchParams.get('objectPath');
+        if (objectPath) {
+          const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
+          const bucket = (import.meta as any).env?.VITE_SUPABASE_STORAGE_BUCKET || 'verifund-assets';
+          if (supabaseUrl) {
+            // Keep the public/ prefix for Supabase URLs
+            viewUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`;
+          } else {
+            viewUrl = `/objects/${objectPath}`;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to convert upload URL:', error);
+        // Fallback: try to extract objectPath manually
+        const match = fileUrl.match(/objectPath=([^&]+)/);
+        if (match) {
+          const objectPath = decodeURIComponent(match[1]);
+          viewUrl = `/objects/${objectPath}`;
+        } else {
+          viewUrl = `/objects/${fileUrl}`;
+        }
+      }
     } else {
       viewUrl = `/public-objects/${fileUrl}`; // Assume public object
     }
 
+    console.log('🔍 DocumentViewer final URL:', { viewUrl, fileType });
+    
     switch (fileType) {
       case 'image':
         return (
@@ -226,11 +309,11 @@ export function DocumentViewer({ document, trigger, className, externalShow, onE
             {getIcon()}
             <h3 className="mt-4 text-lg font-medium">{fileName}</h3>
             <p className="text-gray-600 mt-2">
-              This file type cannot be previewed directly. Please download to view the contents.
+              This file type cannot be previewed directly. Please view full to see the contents.
             </p>
             <Button onClick={handleDownload} className="mt-4" disabled={isLoading}>
-              <Download className="h-4 w-4 mr-2" />
-              {isLoading ? 'Downloading...' : 'Download File'}
+              <Eye className="h-4 w-4 mr-2" />
+              {isLoading ? 'Opening...' : 'View Full'}
             </Button>
           </div>
         );
@@ -275,8 +358,8 @@ export function DocumentViewer({ document, trigger, className, externalShow, onE
           
           <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
             <Button variant="outline" onClick={handleDownload} disabled={isLoading}>
-              <Download className="h-4 w-4 mr-2" />
-              {isLoading ? 'Downloading...' : 'Download'}
+              <Eye className="h-4 w-4 mr-2" />
+              {isLoading ? 'Opening...' : 'View Full'}
             </Button>
             <Button variant="outline" onClick={handleModalClose}>
               Close
