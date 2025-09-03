@@ -21,15 +21,15 @@ export default function PaymentCancel() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
+      <Card className="max-w-md w-full mx-4">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <XCircle className="w-16 h-16 text-orange-500" />
           </div>
           <CardTitle className="text-2xl text-orange-700">Payment Cancelled</CardTitle>
         </CardHeader>
-        <CardContent className="text-center space-y-6">
+        <CardContent className="text-center space-y-6 p-6">
           <div>
             <p className="text-gray-600 mb-2">
               Your payment has been cancelled. No charges were made to your account.
@@ -41,13 +41,13 @@ export default function PaymentCancel() {
           
           <div className="flex flex-col gap-3">
             <Link href="/">
-              <Button className="w-full" data-testid="button-try-again">
+              <Button className="w-full h-12 text-base font-medium" data-testid="button-try-again">
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Try Another Deposit
               </Button>
             </Link>
             <Link href="/">
-              <Button variant="outline" className="w-full" data-testid="button-return-home">
+              <Button variant="outline" className="w-full h-12 text-base font-medium" data-testid="button-return-home">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Return to Dashboard
               </Button>

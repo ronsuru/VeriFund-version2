@@ -22,7 +22,12 @@ export default function PaymentSuccess() {
 
   const closePopup = () => {
     notifyParent();
-    try { window.close(); } catch {}
+    try { 
+      window.close(); 
+    } catch {
+      // If window.close() fails (e.g., on mobile), redirect to home
+      window.location.href = '/';
+    }
   };
 
   useEffect(() => {
@@ -36,15 +41,15 @@ export default function PaymentSuccess() {
   }, [sessionId]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="max-w-md w-full">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">
+      <Card className="max-w-md w-full mx-4">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <CheckCircle className="w-16 h-16 text-green-500" />
           </div>
           <CardTitle className="text-2xl text-green-700">Payment Successful!</CardTitle>
         </CardHeader>
-        <CardContent className="text-center space-y-6">
+        <CardContent className="text-center space-y-6 p-6">
           <div>
             <p className="text-gray-600 mb-2">
               Your deposit has been processed successfully.
@@ -65,9 +70,13 @@ export default function PaymentSuccess() {
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">This window will close automatically in 5 seconds.</p>
             <div className="flex flex-col gap-3">
-              <Button onClick={closePopup} className="w-full" data-testid="button-return-home">
+              <Button 
+                onClick={closePopup} 
+                className="w-full h-12 text-base font-medium" 
+                data-testid="button-return-home"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Close and return to Dashboard
+                Return to Dashboard
               </Button>
             </div>
           </div>
