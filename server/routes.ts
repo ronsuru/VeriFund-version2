@@ -818,6 +818,7 @@ let userId = req.user.claims.sub;
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             user = await storage.getUser(userId);
           } catch {}
@@ -1053,6 +1054,7 @@ let userId = req.user.claims.sub;
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             dbUser = await storage.getUser(userId);
           } catch {}
@@ -1140,6 +1142,7 @@ let userId = req.user.claims.sub;
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             dbUser = await storage.getUser(userId);
           } catch {}
@@ -1257,6 +1260,7 @@ let userId = req.user.claims.sub;
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             dbUser = await storage.getUser(userId);
           } catch {}
@@ -2298,6 +2302,7 @@ let userId = req.user.claims.sub;
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             user = await storage.getUser(userId);
           } catch {}
@@ -3286,6 +3291,7 @@ const userId = req.user?.claims?.sub || req.user?.sub;
             firstName: email ? email.split('@')[0] : '',
             lastName: "",
             profileImageUrl: null,
+            kycStatus: null, // Explicitly set to null for new users
           });
           // refresh after provisioning
           user = await storage.getUser(userId);
@@ -3873,6 +3879,7 @@ let user = await storage.getUser(userId);
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             user = await storage.getUser(userId);
           } catch {}
@@ -3974,6 +3981,7 @@ let user = await storage.getUser(userId);
               firstName: userEmail.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
             user = await storage.getUser(userId);
           } catch {}

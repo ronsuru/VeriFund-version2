@@ -130,6 +130,7 @@ export async function setupAuth(app: any) {
               firstName: email.split('@')[0],
               lastName: "",
               profileImageUrl: null,
+              kycStatus: null, // Explicitly set to null for new users
             });
           }
         } catch (userError) {
@@ -276,6 +277,7 @@ export async function setupAuth(app: any) {
                 firstName: (user.user_metadata as any)?.first_name || (user.email || '').split('@')[0] || '',
                 lastName: (user.user_metadata as any)?.last_name || '',
                 profileImageUrl: (user.user_metadata as any)?.avatar_url || null,
+                kycStatus: null, // Explicitly set to null for new users
               });
 
               const adminEmails = [
