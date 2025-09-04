@@ -4946,33 +4946,17 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
       {/* Analytics Section */}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
 
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 text-center">
 
-            <Users className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+            <Users className="h-5 w-5 text-blue-500 mx-auto mb-1.5" />
 
-            <p className="text-sm text-gray-600">KYC</p>
+            <p className="text-xs text-gray-600 mb-1">KYC</p>
 
-            <p className="text-xl font-bold">{analytics?.kyc || 0}</p>
-
-          </CardContent>
-
-        </Card>
-
-        
-
-        <Card>
-
-          <CardContent className="p-4 text-center">
-
-            <Target className="h-6 w-6 text-indigo-500 mx-auto mb-2" />
-
-            <p className="text-sm text-gray-600">Reviewed Campaigns</p>
-
-            <p className="text-xl font-bold">{analytics?.reviewedCampaigns || 0}</p>
+            <p className="text-lg font-bold text-blue-600">{analytics?.kyc || 0}</p>
 
           </CardContent>
 
@@ -4980,31 +4964,15 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
         
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
 
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 text-center">
 
-            <FileText className="h-6 w-6 text-green-500 mx-auto mb-2" />
+            <Target className="h-5 w-5 text-indigo-500 mx-auto mb-1.5" />
 
-            <p className="text-sm text-gray-600">Document Reports</p>
+            <p className="text-xs text-gray-600 mb-1">Reviewed Campaigns</p>
 
-            <p className="text-xl font-bold">{analytics?.documents || 0}</p>
-
-          </CardContent>
-
-        </Card>
-
-        
-
-        <Card>
-
-          <CardContent className="p-4 text-center">
-
-            <Target className="h-6 w-6 text-purple-500 mx-auto mb-2" />
-
-            <p className="text-sm text-gray-600">Campaign Reports</p>
-
-            <p className="text-xl font-bold">{analytics?.campaigns || 0}</p>
+            <p className="text-lg font-bold text-indigo-600">{analytics?.reviewedCampaigns || 0}</p>
 
           </CardContent>
 
@@ -5012,31 +4980,15 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
         
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
 
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 text-center">
 
-            <Users className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+            <FileText className="h-5 w-5 text-green-500 mx-auto mb-1.5" />
 
-            <p className="text-sm text-gray-600">Volunteer Reports</p>
+            <p className="text-xs text-gray-600 mb-1">Document Reports</p>
 
-            <p className="text-xl font-bold">{analytics?.volunteers || 0}</p>
-
-          </CardContent>
-
-        </Card>
-
-        
-
-        <Card>
-
-          <CardContent className="p-4 text-center">
-
-            <Users className="h-6 w-6 text-red-500 mx-auto mb-2" />
-
-            <p className="text-sm text-gray-600">Creator Reports</p>
-
-            <p className="text-xl font-bold">{analytics?.creators || 0}</p>
+            <p className="text-lg font-bold text-green-600">{analytics?.documents || 0}</p>
 
           </CardContent>
 
@@ -5044,15 +4996,63 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
         
 
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
 
-          <CardContent className="p-4 text-center">
+          <CardContent className="p-3 text-center">
 
-            <DollarSign className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+            <Target className="h-5 w-5 text-purple-500 mx-auto mb-1.5" />
 
-            <p className="text-sm text-gray-600">Transaction Reports</p>
+            <p className="text-xs text-gray-600 mb-1">Campaign Reports</p>
 
-            <p className="text-xl font-bold">{analytics?.transactions || 0}</p>
+            <p className="text-lg font-bold text-purple-600">{analytics?.campaigns || 0}</p>
+
+          </CardContent>
+
+        </Card>
+
+        
+
+        <Card className="hover:shadow-md transition-shadow">
+
+          <CardContent className="p-3 text-center">
+
+            <Users className="h-5 w-5 text-orange-500 mx-auto mb-1.5" />
+
+            <p className="text-xs text-gray-600 mb-1">Volunteer Reports</p>
+
+            <p className="text-lg font-bold text-orange-600">{analytics?.volunteers || 0}</p>
+
+          </CardContent>
+
+        </Card>
+
+        
+
+        <Card className="hover:shadow-md transition-shadow">
+
+          <CardContent className="p-3 text-center">
+
+            <Users className="h-5 w-5 text-red-500 mx-auto mb-1.5" />
+
+            <p className="text-xs text-gray-600 mb-1">Creator Reports</p>
+
+            <p className="text-lg font-bold text-red-600">{analytics?.creators || 0}</p>
+
+          </CardContent>
+
+        </Card>
+
+        
+
+        <Card className="hover:shadow-md transition-shadow">
+
+          <CardContent className="p-3 text-center">
+
+            <DollarSign className="h-5 w-5 text-yellow-500 mx-auto mb-1.5" />
+
+            <p className="text-xs text-gray-600 mb-1">Transaction Reports</p>
+
+            <p className="text-lg font-bold text-yellow-600">{analytics?.transactions || 0}</p>
 
           </CardContent>
 
@@ -6102,57 +6102,119 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                       <div key={kyc.id} className="border rounded-lg p-4">
 
-                        <div className="flex justify-between items-center">
+                        <div className="space-y-3">
 
-                          <div className="flex items-center gap-3">
+                          {/* Top section: Avatar, Name, Status Badge */}
+                          <div className="flex items-start justify-between gap-3">
 
-                            <Avatar className="h-10 w-10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
 
-                              <AvatarImage src={kyc.profileImageUrl} />
+                              <Avatar className="h-10 w-10 flex-shrink-0">
 
-                              <AvatarFallback>{kyc.firstName?.[0]}{kyc.lastName?.[0]}</AvatarFallback>
+                                <AvatarImage src={kyc.profileImageUrl} />
 
-                            </Avatar>
+                                <AvatarFallback>{kyc.firstName?.[0]}{kyc.lastName?.[0]}</AvatarFallback>
 
-                            <div>
+                              </Avatar>
 
-                              <h4 className="font-medium">{kyc.firstName} {kyc.lastName}</h4>
+                              <div className="min-w-0 flex-1">
 
-                              <p className="text-sm text-gray-600">{kyc.email}</p>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
 
-                              <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
 
-                                <span className="text-sm text-gray-600">User ID:</span>
+                                    <span className="font-mono text-xs">{kyc.userDisplayId}</span>
 
-                                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  </div>
 
-                                  <span className="font-mono">{kyc.userDisplayId}</span>
+                                  {kyc.kycStatus === 'on_progress' && (
+
+                                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 text-xs">
+
+                                      on_progress
+
+                                    </Badge>
+
+                                  )}
 
                                 </div>
 
+                                <h4 className="font-medium truncate text-sm">{kyc.firstName} {kyc.lastName}</h4>
+
+                                <p className="text-xs text-gray-600 truncate">{kyc.email}</p>
+
                               </div>
 
-                              <p className="text-sm text-gray-500 mt-1">
+                            </div>
 
-                                <strong>Submitted:</strong> {kyc.submittedAt ? new Date(kyc.submittedAt).toLocaleDateString() : 'N/A'}
+                            {/* Approve/Reject icon buttons - Top right corner */}
+                            {kyc.kycStatus === 'on_progress' && (
 
-                              </p>
+                              <div className="flex gap-1 flex-shrink-0">
 
-                              <p className="text-sm text-gray-400">
+                                <Button 
 
-                                <strong>Claimed:</strong> {kyc.claimedAt ? new Date(kyc.claimedAt).toLocaleDateString() : 'N/A'}
+                                  size="sm"
 
-                              </p>
+                                  className="bg-green-600 hover:bg-green-700 h-8 w-8 p-0"
+
+                                  onClick={() => openApprovalDialog('approve', kyc.id, 'kyc')}
+
+                                >
+
+                                  <Check className="w-4 h-4 text-white" />
+
+                                </Button>
+
+                                <Button 
+
+                                  size="sm"
+
+                                  variant="destructive"
+
+                                  onClick={() => openApprovalDialog('reject', kyc.id, 'kyc')}
+
+                                  className="h-8 w-8 p-0"
+
+                                >
+
+                                  <X className="w-4 h-4" />
+
+                                </Button>
+
+                              </div>
+
+                            )}
+
+                          </div>
+
+                          {/* Middle section: User details */}
+                          <div className="space-y-2">
+
+                            <div className="flex items-center gap-4 text-xs">
+
+                              <span className="text-gray-500">
+
+                                <strong>Submitted:</strong> {kyc.submittedAt ? new Date(kyc.submittedAt).toLocaleDateString() : kyc.createdAt ? new Date(kyc.createdAt).toLocaleDateString() : 'Not available'}
+
+                              </span>
+
+                              <span className="text-gray-400">
+
+                                <strong>Claimed:</strong> {kyc.claimedAt ? new Date(kyc.claimedAt).toLocaleDateString() : kyc.updatedAt ? new Date(kyc.updatedAt).toLocaleDateString() : 'Not claimed yet'}
+
+                              </span>
 
                             </div>
 
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          {/* Bottom section: Action buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t">
 
-                            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
 
-                              <Users className="w-3 h-3 mr-1" />
+                              <Users className="w-2.5 h-2.5 mr-1" />
 
                               Claimed
 
@@ -6168,9 +6230,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                               data-testid={`button-view-kyc-${kyc.id}`}
 
+                              className="text-xs"
+
                             >
 
-                              <Eye className="h-3 w-3 mr-1" />
+                              <Eye className="h-2.5 w-2.5 mr-1" />
 
                               View
 
@@ -6208,57 +6272,70 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                       <div key={campaign.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
 
-                        <div className="flex justify-between items-center">
+                        <div className="space-y-3">
 
-                          <div className="flex items-center gap-3">
+                          {/* Top section: Avatar, Name, Status Badge */}
+                          <div className="flex items-start justify-between gap-3">
 
-                            <Avatar className="h-10 w-10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
 
-                              <AvatarImage src={campaign.creator?.profileImageUrl} />
+                              <Avatar className="h-10 w-10 flex-shrink-0">
 
-                              <AvatarFallback>{campaign.creator?.firstName?.[0]}{campaign.creator?.lastName?.[0]}</AvatarFallback>
+                                <AvatarImage src={campaign.creator?.profileImageUrl} />
 
-                            </Avatar>
+                                <AvatarFallback>{campaign.creator?.firstName?.[0]}{campaign.creator?.lastName?.[0]}</AvatarFallback>
 
-                            <div>
+                              </Avatar>
 
-                              <h4 className="font-medium">{campaign.title}</h4>
+                              <div className="min-w-0 flex-1">
 
-                              <p className="text-sm text-gray-600">by {campaign.creator?.firstName} {campaign.creator?.lastName}</p>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
 
-                              <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
 
-                                <span className="text-sm text-gray-600">Campaign ID:</span>
+                                    <span className="font-mono text-xs">{campaign.campaignDisplayId}</span>
 
-                                <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-
-                                  <span className="font-mono">{campaign.campaignDisplayId}</span>
+                                  </div>
 
                                 </div>
 
+                                <h4 className="font-medium truncate text-sm">{campaign.title}</h4>
+
+                                <p className="text-xs text-gray-600 truncate">by {campaign.creator?.firstName} {campaign.creator?.lastName}</p>
+
                               </div>
-
-                              <p className="text-sm text-gray-500 mt-1">
-
-                                <strong>Target:</strong> ₱{parseFloat(campaign.targetAmount || "0").toLocaleString()}
-
-                              </p>
-
-                              <p className="text-sm text-gray-400">
-
-                                <strong>Claimed:</strong> {campaign.claimedAt ? new Date(campaign.claimedAt).toLocaleDateString() : 'N/A'}
-
-                              </p>
 
                             </div>
 
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          {/* Middle section: Campaign details */}
+                          <div className="space-y-2">
 
-                            <Badge className="bg-green-100 text-green-800 border-green-300">
+                            <div className="flex items-center gap-4 text-xs">
 
-                              <Users className="w-3 h-3 mr-1" />
+                              <span className="text-gray-500">
+
+                                <strong>Target:</strong> ₱{parseFloat(campaign.targetAmount || "0").toLocaleString()}
+
+                              </span>
+
+                              <span className="text-gray-400">
+
+                                <strong>Claimed:</strong> {campaign.claimedAt ? new Date(campaign.claimedAt).toLocaleDateString() : campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString() : 'Not claimed yet'}
+
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          {/* Bottom section: Action buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t">
+
+                            <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">
+
+                              <Users className="w-2.5 h-2.5 mr-1" />
 
                               Claimed
 
@@ -6274,9 +6351,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                               data-testid={`button-view-campaign-${campaign.id}`}
 
+                              className="text-xs"
+
                             >
 
-                              <Eye className="h-3 w-3 mr-1" />
+                              <Eye className="h-2.5 w-2.5 mr-1" />
 
                               View
 
@@ -6314,57 +6393,70 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                       <div key={report.id} className="border rounded-lg p-4 bg-purple-50 border-purple-200">
 
-                        <div className="flex justify-between items-center">
+                        <div className="space-y-3">
 
-                          <div className="flex items-center gap-3">
+                          {/* Top section: Avatar, Name, Status Badge */}
+                          <div className="flex items-start justify-between gap-3">
 
-                            <Avatar className="h-10 w-10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
 
-                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <Avatar className="h-10 w-10 flex-shrink-0">
 
-                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                                <AvatarImage src={report.reporter?.profileImageUrl} />
 
-                            </Avatar>
+                                <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
 
-                            <div>
+                              </Avatar>
 
-                              <h4 className="font-medium">Document Report</h4>
+                              <div className="min-w-0 flex-1">
 
-                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
 
-                              <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
 
-                                <span className="text-sm text-gray-600">Report ID:</span>
+                                    <span className="font-mono text-xs">{report.reportDisplayId}</span>
 
-                                <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
-
-                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                  </div>
 
                                 </div>
 
+                                <h4 className="font-medium truncate text-sm">Document Report</h4>
+
+                                <p className="text-xs text-gray-600 truncate">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+
                               </div>
-
-                              <p className="text-sm text-gray-500 mt-1">
-
-                                <strong>Type:</strong> {report.reportType || 'Document Issue'}
-
-                              </p>
-
-                              <p className="text-sm text-gray-400">
-
-                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
-
-                              </p>
 
                             </div>
 
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          {/* Middle section: Report details */}
+                          <div className="space-y-2">
 
-                            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+                            <div className="flex items-center gap-4 text-xs">
 
-                              <Users className="w-3 h-3 mr-1" />
+                              <span className="text-gray-500">
+
+                                <strong>Type:</strong> {report.reportType || 'Document Issue'}
+
+                              </span>
+
+                              <span className="text-gray-400">
+
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : report.updatedAt ? new Date(report.updatedAt).toLocaleDateString() : 'Not claimed yet'}
+
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          {/* Bottom section: Action buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t">
+
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs">
+
+                              <Users className="w-2.5 h-2.5 mr-1" />
 
                               Claimed
 
@@ -6380,9 +6472,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                               data-testid={`button-view-report-${report.id}`}
 
+                              className="text-xs"
+
                             >
 
-                              <Eye className="h-3 w-3 mr-1" />
+                              <Eye className="h-2.5 w-2.5 mr-1" />
 
                               View
 
@@ -6420,57 +6514,70 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                       <div key={report.id} className="border rounded-lg p-4 bg-orange-50 border-orange-200">
 
-                        <div className="flex justify-between items-center">
+                        <div className="space-y-3">
 
-                          <div className="flex items-center gap-3">
+                          {/* Top section: Avatar, Name, Status Badge */}
+                          <div className="flex items-start justify-between gap-3">
 
-                            <Avatar className="h-10 w-10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
 
-                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <Avatar className="h-10 w-10 flex-shrink-0">
 
-                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                                <AvatarImage src={report.reporter?.profileImageUrl} />
 
-                            </Avatar>
+                                <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
 
-                            <div>
+                              </Avatar>
 
-                              <h4 className="font-medium">Campaign Report</h4>
+                              <div className="min-w-0 flex-1">
 
-                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
 
-                              <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
 
-                                <span className="text-sm text-gray-600">Report ID:</span>
+                                    <span className="font-mono text-xs">{report.reportDisplayId}</span>
 
-                                <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
-
-                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                  </div>
 
                                 </div>
 
+                                <h4 className="font-medium truncate text-sm">Campaign Report</h4>
+
+                                <p className="text-xs text-gray-600 truncate">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+
                               </div>
-
-                              <p className="text-sm text-gray-500 mt-1">
-
-                                <strong>Campaign:</strong> {report.campaign?.title || 'Unknown Campaign'}
-
-                              </p>
-
-                              <p className="text-sm text-gray-400">
-
-                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
-
-                              </p>
 
                             </div>
 
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          {/* Middle section: Report details */}
+                          <div className="space-y-2">
 
-                            <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                            <div className="flex items-center gap-4 text-xs">
 
-                              <Users className="w-3 h-3 mr-1" />
+                              <span className="text-gray-500">
+
+                                <strong>Campaign:</strong> {report.campaign?.title || 'Unknown Campaign'}
+
+                              </span>
+
+                              <span className="text-gray-400">
+
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : report.updatedAt ? new Date(report.updatedAt).toLocaleDateString() : 'Not claimed yet'}
+
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          {/* Bottom section: Action buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t">
+
+                            <Badge className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
+
+                              <Users className="w-2.5 h-2.5 mr-1" />
 
                               Claimed
 
@@ -6486,9 +6593,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                               data-testid={`button-view-campaign-report-${report.id}`}
 
+                              className="text-xs"
+
                             >
 
-                              <Eye className="h-3 w-3 mr-1" />
+                              <Eye className="h-2.5 w-2.5 mr-1" />
 
                               View
 
@@ -6524,57 +6633,70 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                       <div key={report.id} className="border rounded-lg p-4 bg-teal-50 border-teal-200">
 
-                        <div className="flex justify-between items-center">
+                        <div className="space-y-3">
 
-                          <div className="flex items-center gap-3">
+                          {/* Top section: Avatar, Name, Status Badge */}
+                          <div className="flex items-start justify-between gap-3">
 
-                            <Avatar className="h-10 w-10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
 
-                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <Avatar className="h-10 w-10 flex-shrink-0">
 
-                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                                <AvatarImage src={report.reporter?.profileImageUrl} />
 
-                            </Avatar>
+                                <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
 
-                            <div>
+                              </Avatar>
 
-                              <h4 className="font-medium">Volunteer Report</h4>
+                              <div className="min-w-0 flex-1">
 
-                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
 
-                              <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
 
-                                <span className="text-sm text-gray-600">Report ID:</span>
+                                    <span className="font-mono text-xs">{report.reportDisplayId}</span>
 
-                                <div className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs font-medium">
-
-                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                  </div>
 
                                 </div>
 
+                                <h4 className="font-medium truncate text-sm">Volunteer Report</h4>
+
+                                <p className="text-xs text-gray-600 truncate">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+
                               </div>
-
-                              <p className="text-sm text-gray-500 mt-1">
-
-                                <strong>Volunteer:</strong> {report.volunteer?.firstName} {report.volunteer?.lastName}
-
-                              </p>
-
-                              <p className="text-sm text-gray-400">
-
-                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
-
-                              </p>
 
                             </div>
 
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          {/* Middle section: Report details */}
+                          <div className="space-y-2">
 
-                            <Badge className="bg-teal-100 text-teal-800 border-teal-300">
+                            <div className="flex items-center gap-4 text-xs">
 
-                              <Users className="w-3 h-3 mr-1" />
+                              <span className="text-gray-500">
+
+                                <strong>Volunteer:</strong> {report.volunteer?.firstName} {report.volunteer?.lastName}
+
+                              </span>
+
+                              <span className="text-gray-400">
+
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : report.updatedAt ? new Date(report.updatedAt).toLocaleDateString() : 'Not claimed yet'}
+
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          {/* Bottom section: Action buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t">
+
+                            <Badge className="bg-teal-100 text-teal-800 border-teal-300 text-xs">
+
+                              <Users className="w-2.5 h-2.5 mr-1" />
 
                               Claimed
 
@@ -6590,9 +6712,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                               data-testid={`button-view-volunteer-report-${report.id}`}
 
+                              className="text-xs"
+
                             >
 
-                              <Eye className="h-3 w-3 mr-1" />
+                              <Eye className="h-2.5 w-2.5 mr-1" />
 
                               View
 
@@ -6628,57 +6752,70 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                       <div key={report.id} className="border rounded-lg p-4 bg-pink-50 border-pink-200">
 
-                        <div className="flex justify-between items-center">
+                        <div className="space-y-3">
 
-                          <div className="flex items-center gap-3">
+                          {/* Top section: Avatar, Name, Status Badge */}
+                          <div className="flex items-start justify-between gap-3">
 
-                            <Avatar className="h-10 w-10">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
 
-                              <AvatarImage src={report.reporter?.profileImageUrl} />
+                              <Avatar className="h-10 w-10 flex-shrink-0">
 
-                              <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
+                                <AvatarImage src={report.reporter?.profileImageUrl} />
 
-                            </Avatar>
+                                <AvatarFallback>{report.reporter?.firstName?.[0]}{report.reporter?.lastName?.[0]}</AvatarFallback>
 
-                            <div>
+                              </Avatar>
 
-                              <h4 className="font-medium">Creator Report</h4>
+                              <div className="min-w-0 flex-1">
 
-                              <p className="text-sm text-gray-600">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
 
-                              <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-pink-100 text-pink-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
 
-                                <span className="text-sm text-gray-600">Report ID:</span>
+                                    <span className="font-mono text-xs">{report.reportDisplayId}</span>
 
-                                <div className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs font-medium">
-
-                                  <span className="font-mono">{report.reportDisplayId}</span>
+                                  </div>
 
                                 </div>
 
+                                <h4 className="font-medium truncate text-sm">Creator Report</h4>
+
+                                <p className="text-xs text-gray-600 truncate">by {report.reporter?.firstName} {report.reporter?.lastName}</p>
+
                               </div>
-
-                              <p className="text-sm text-gray-500 mt-1">
-
-                                <strong>Creator:</strong> {report.creator?.firstName} {report.creator?.lastName}
-
-                              </p>
-
-                              <p className="text-sm text-gray-400">
-
-                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : 'N/A'}
-
-                              </p>
 
                             </div>
 
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          {/* Middle section: Report details */}
+                          <div className="space-y-2">
 
-                            <Badge className="bg-pink-100 text-pink-800 border-pink-300">
+                            <div className="flex items-center gap-4 text-xs">
 
-                              <Users className="w-3 h-3 mr-1" />
+                              <span className="text-gray-500">
+
+                                <strong>Creator:</strong> {report.creator?.firstName} {report.creator?.lastName}
+
+                              </span>
+
+                              <span className="text-gray-400">
+
+                                <strong>Claimed:</strong> {report.claimedAt ? new Date(report.claimedAt).toLocaleDateString() : report.updatedAt ? new Date(report.updatedAt).toLocaleDateString() : 'Not claimed yet'}
+
+                              </span>
+
+                            </div>
+
+                          </div>
+
+                          {/* Bottom section: Action buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t">
+
+                            <Badge className="bg-pink-100 text-pink-800 border-pink-300 text-xs">
+
+                              <Users className="w-2.5 h-2.5 mr-1" />
 
                               Claimed
 
@@ -6694,9 +6831,11 @@ const response = await apiRequest('POST', `/api/admin/users/${userId}/reassign`)
 
                               data-testid={`button-view-creator-report-${report.id}`}
 
+                              className="text-xs"
+
                             >
 
-                              <Eye className="h-3 w-3 mr-1" />
+                              <Eye className="h-2.5 w-2.5 mr-1" />
 
                               View
 
@@ -10228,9 +10367,10 @@ function KYCSection() {
 
           <Tabs value={activeKycTab} onValueChange={setActiveKycTab}>
 
-            <div className="w-full">
+            {/* Desktop: Horizontal Tabs */}
+            <div className="hidden md:block w-full">
 
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1 p-1 bg-gray-100 rounded-lg">
+              <TabsList className="grid w-full grid-cols-6 gap-1 p-1 bg-gray-100 rounded-lg">
 
                 <TabsTrigger 
 
@@ -10332,7 +10472,57 @@ function KYCSection() {
 
             </div>
 
-
+            {/* Mobile: Vertical Tab Selector */}
+            <div className="md:hidden">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select User Type
+                </label>
+                <Select value={activeKycTab} onValueChange={setActiveKycTab}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose user type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="basic">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Basic Users</span>
+                        <span className="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">{getFilteredKycUsers(basicUsers, 'basic').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="pending">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Pending KYC</span>
+                        <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{getFilteredKycUsers(pendingKyc, 'pending').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="verified">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Verified Users</span>
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{getFilteredKycUsers(verifiedKyc, 'verified').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="rejected">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Rejected Users</span>
+                        <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{getFilteredKycUsers(rejectedKyc, 'rejected').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="suspended">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Suspended Users</span>
+                        <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{getFilteredKycUsers(suspendedUsers, 'suspended').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="staffs">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Staff Users</span>
+                        <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{getFilteredKycUsers(adminUsers, 'staffs').length}</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <TabsContent value="basic" className="mt-4">
 
@@ -11778,9 +11968,10 @@ function CampaignsSection() {
 
           <Tabs value={activeCampaignTab} onValueChange={setActiveCampaignTab}>
 
-            <div className="w-full">
+            {/* Desktop: Horizontal Tabs */}
+            <div className="hidden md:block w-full">
 
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1 p-1 bg-gray-100 rounded-lg">
+              <TabsList className="grid w-full grid-cols-6 gap-1 p-1 bg-gray-100 rounded-lg">
 
                 <TabsTrigger 
 
@@ -11882,7 +12073,57 @@ function CampaignsSection() {
 
             </div>
 
-
+            {/* Mobile: Vertical Tab Selector */}
+            <div className="md:hidden">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Campaign Status
+                </label>
+                <Select value={activeCampaignTab} onValueChange={setActiveCampaignTab}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose campaign status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="requests">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Pending Campaigns</span>
+                        <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{getFilteredCampaigns(pendingCampaigns, 'pending').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="active">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Active Campaigns</span>
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{getFilteredCampaigns(activeCampaigns, 'active').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="in-progress">
+                      <div className="flex items-center justify-between w-full">
+                        <span>In Progress</span>
+                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{getFilteredCampaigns(inProgressCampaigns, 'in-progress').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="completed">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Completed</span>
+                        <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{getFilteredCampaigns(completedCampaigns, 'completed').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="rejected">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Rejected</span>
+                        <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{getFilteredCampaigns(rejectedCampaigns, 'rejected').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="closed">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Closed</span>
+                        <span className="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">{getFilteredCampaigns(closedCampaigns, 'closed').length}</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <TabsContent value="requests" className="mt-4">
 
@@ -13136,21 +13377,27 @@ function FinancialSection() {
 
 
 
-  const renderTransactionList = (transactions: any[], title: string) => (
+  const [showAllTransactions, setShowAllTransactions] = useState<{[key: string]: boolean}>({});
 
-    <div className="space-y-3">
+  const renderTransactionList = (transactions: any[], title: string) => {
+    const tabKey = title.toLowerCase().replace(/\s+/g, '-');
+    const isExpanded = showAllTransactions[tabKey] || false;
+    const displayTransactions = isExpanded ? transactions : transactions.slice(0, 3);
 
-      <h4 className="font-medium text-lg mb-4">{title}</h4>
+    return (
+      <div className="space-y-3">
 
-      {transactions.length === 0 ? (
+        <h4 className="font-medium text-lg mb-4">{title}</h4>
 
-        <p className="text-center text-gray-500 py-8">No transactions found</p>
+        {transactions.length === 0 ? (
 
-      ) : (
+          <p className="text-center text-gray-500 py-8">No transactions found</p>
 
-        <div className="space-y-2">
+        ) : (
 
-          {transactions.map((transaction: any) => (
+          <div className="max-h-96 overflow-y-auto pr-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+
+            {displayTransactions.map((transaction: any) => (
 
             <div key={transaction.id} className="border rounded-lg p-4 bg-white">
 
@@ -13262,6 +13509,27 @@ function FinancialSection() {
 
           ))}
 
+          {transactions.length > 3 && (
+            <div className="text-center py-4 border-t border-gray-200">
+              <p className="text-sm text-gray-500 mb-3">
+                Showing 3 of {transactions.length} transactions
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setShowAllTransactions(prev => ({
+                    ...prev,
+                    [tabKey]: !prev[tabKey]
+                  }));
+                }}
+                className="text-xs"
+              >
+                {isExpanded ? 'Show Less' : 'Show All Transactions'}
+              </Button>
+            </div>
+          )}
+
         </div>
 
       )}
@@ -13269,6 +13537,7 @@ function FinancialSection() {
     </div>
 
   );
+  };
 
 
 
@@ -13534,7 +13803,9 @@ function FinancialSection() {
 
           <Tabs value={activeFinancialTab} onValueChange={setActiveFinancialTab}>
 
-            <TabsList className="grid w-full grid-cols-7 text-xs">
+            {/* Desktop: Horizontal Tabs */}
+            <div className="hidden md:block">
+              <TabsList className="grid w-full grid-cols-7 text-xs">
 
               <TabsTrigger value="deposits">Deposits ({getFilteredFinancialData(deposits, 'deposits').length})</TabsTrigger>
 
@@ -13551,8 +13822,65 @@ function FinancialSection() {
               <TabsTrigger value="failed">Failed ({getFilteredFinancialData(failedTransactions, 'failed').length})</TabsTrigger>
 
             </TabsList>
+            </div>
 
-
+            {/* Mobile: Vertical Tab Selector */}
+            <div className="md:hidden mb-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Transaction Type
+                </label>
+                <Select value={activeFinancialTab} onValueChange={setActiveFinancialTab}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose transaction type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="deposits">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Deposits</span>
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(deposits, 'deposits').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="withdrawals">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Withdrawals</span>
+                        <span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(withdrawals, 'withdrawals').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="contributions">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Contributions</span>
+                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(contributions, 'contributions').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="tips">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Tips</span>
+                        <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(tips, 'tips').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="pending">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Pending</span>
+                        <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(pendingTransactions, 'pending').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="completed">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Completed</span>
+                        <span className="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(completedTransactions, 'completed').length}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="failed">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Failed</span>
+                        <span className="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">{getFilteredFinancialData(failedTransactions, 'failed').length}</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <TabsContent value="deposits" className="mt-4">
 
@@ -15474,7 +15802,9 @@ const response = await apiRequest('PATCH', `/api/admin/reports/${reportId}/claim
 
           <Tabs value={activeReportsTab} onValueChange={setActiveReportsTab} className="w-full">
 
-            <TabsList className="grid w-full grid-cols-5 mb-6">
+            {/* Desktop: Horizontal Tabs */}
+            <div className="hidden md:block">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
 
               <TabsTrigger value="document">Document ({Array.isArray(documentReports) ? documentReports.length : 0})</TabsTrigger>
 
@@ -15487,8 +15817,53 @@ const response = await apiRequest('PATCH', `/api/admin/reports/${reportId}/claim
               <TabsTrigger value="transactions">Transactions ({Array.isArray(transactionReports) ? transactionReports.length : 0})</TabsTrigger>
 
             </TabsList>
+            </div>
 
-
+            {/* Mobile: Vertical Tab Selector */}
+            <div className="md:hidden mb-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Report Type
+                </label>
+                <Select value={activeReportsTab} onValueChange={setActiveReportsTab}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="document">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Document Reports</span>
+                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{Array.isArray(documentReports) ? documentReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="campaigns">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Campaign Reports</span>
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{Array.isArray(campaignReports) ? campaignReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="volunteers">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Volunteer Reports</span>
+                        <span className="ml-2 bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">{Array.isArray(volunteerReports) ? volunteerReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="creators">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Creator Reports</span>
+                        <span className="ml-2 bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">{Array.isArray(creatorReports) ? creatorReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="transactions">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Transaction Reports</span>
+                        <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{Array.isArray(transactionReports) ? transactionReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <TabsContent value="document" className="mt-4">
 
@@ -16342,7 +16717,9 @@ const response = await apiRequest('PATCH', `/api/admin/reports/${reportId}/claim
 
           <Tabs value={activeProcessedTab} onValueChange={setActiveProcessedTab} className="w-full">
 
-            <TabsList className="grid w-full grid-cols-5 mb-6">
+            {/* Desktop: Horizontal Tabs */}
+            <div className="hidden md:block">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
 
               <TabsTrigger value="document">Documents ({Array.isArray(processedDocumentReports) ? processedDocumentReports.length : 0})</TabsTrigger>
 
@@ -16355,8 +16732,53 @@ const response = await apiRequest('PATCH', `/api/admin/reports/${reportId}/claim
               <TabsTrigger value="transactions">Transactions ({Array.isArray(processedTransactionReports) ? processedTransactionReports.length : 0})</TabsTrigger>
 
             </TabsList>
+            </div>
 
-
+            {/* Mobile: Vertical Tab Selector */}
+            <div className="md:hidden mb-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Processed Report Type
+                </label>
+                <Select value={activeProcessedTab} onValueChange={setActiveProcessedTab}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose processed report type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="document">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Document Reports</span>
+                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{Array.isArray(processedDocumentReports) ? processedDocumentReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="campaigns">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Campaign Reports</span>
+                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{Array.isArray(processedCampaignReports) ? processedCampaignReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="volunteers">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Volunteer Reports</span>
+                        <span className="ml-2 bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">{Array.isArray(processedVolunteerReports) ? processedVolunteerReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="creators">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Creator Reports</span>
+                        <span className="ml-2 bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">{Array.isArray(processedCreatorReports) ? processedCreatorReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="transactions">
+                      <div className="flex items-center justify-between w-full">
+                        <span>Transaction Reports</span>
+                        <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{Array.isArray(processedTransactionReports) ? processedTransactionReports.length : 0}</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
             <TabsContent value="document" className="mt-4">
 
