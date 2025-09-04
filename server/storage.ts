@@ -7511,13 +7511,13 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
           paidSlotPrice = parseFloat(slotConfig.paidSlotPrice);
         } else {
           // Fallback to hardcoded values if no configuration found
-          if (avgCreditScore >= 81) { maxAllowed = 25; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-          else if (avgCreditScore >= 66) { maxAllowed = 20; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-          else if (avgCreditScore >= 51) { maxAllowed = 15; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-          else if (avgCreditScore >= 36) { maxAllowed = 10; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-          else if (avgCreditScore >= 21) { maxAllowed = 5; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-          else if (avgCreditScore >= 0) { maxAllowed = 3; paidSlotsAvailable = 0; paidSlotPrice = 0; }
-          else { maxAllowed = 0; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      if (avgCreditScore >= 81) { maxAllowed = 25; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 66) { maxAllowed = 20; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 51) { maxAllowed = 15; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 36) { maxAllowed = 10; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 21) { maxAllowed = 5; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else if (avgCreditScore >= 0) { maxAllowed = 3; paidSlotsAvailable = 0; paidSlotPrice = 0; }
+      else { maxAllowed = 0; paidSlotsAvailable = 0; paidSlotPrice = 0; }
         }
       } catch (error) {
         console.error('Error getting campaign slot configuration, using fallback:', error);
@@ -7562,12 +7562,12 @@ async getVolunteerReportById(reportId: string): Promise<VolunteerReport | null> 
     } catch (error) {
       console.error('Error getting next tier info, using fallback:', error);
       // Fallback to hardcoded values
-      if (avgCreditScore < 81) {
-        if (avgCreditScore < 21) { nextTierInfo = { nextTier: '21%', message: 'Reach 21% credit score for 5 free slots/month', requiredScore: 21 }; }
-        else if (avgCreditScore < 36) { nextTierInfo = { nextTier: '36%', message: 'Reach 36% credit score for 10 free slots/month', requiredScore: 36 }; }
-        else if (avgCreditScore < 51) { nextTierInfo = { nextTier: '51%', message: 'Reach 51% credit score for 15 free slots/month', requiredScore: 51 }; }
-        else if (avgCreditScore < 66) { nextTierInfo = { nextTier: '66%', message: 'Reach 66% credit score for 20 free slots/month', requiredScore: 66 }; }
-        else if (avgCreditScore < 81) { nextTierInfo = { nextTier: '81%', message: 'Reach 81% credit score for 25 free slots/month', requiredScore: 81 }; }
+    if (avgCreditScore < 81) {
+      if (avgCreditScore < 21) { nextTierInfo = { nextTier: '21%', message: 'Reach 21% credit score for 5 free slots/month', requiredScore: 21 }; }
+      else if (avgCreditScore < 36) { nextTierInfo = { nextTier: '36%', message: 'Reach 36% credit score for 10 free slots/month', requiredScore: 36 }; }
+      else if (avgCreditScore < 51) { nextTierInfo = { nextTier: '51%', message: 'Reach 51% credit score for 15 free slots/month', requiredScore: 51 }; }
+      else if (avgCreditScore < 66) { nextTierInfo = { nextTier: '66%', message: 'Reach 66% credit score for 20 free slots/month', requiredScore: 66 }; }
+      else if (avgCreditScore < 81) { nextTierInfo = { nextTier: '81%', message: 'Reach 81% credit score for 25 free slots/month', requiredScore: 81 }; }
       }
     }
 

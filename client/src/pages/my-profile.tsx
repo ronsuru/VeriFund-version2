@@ -102,9 +102,16 @@ export default function MyProfile() {
         className: 'w-full bg-gray-400 text-white cursor-not-allowed',
         disabled: true
       };
-    } else {
+    } else if (kycStatus === 'verified' || kycStatus === 'approved') {
       return {
-        text: 'Complete Verification',
+        text: 'Verified',
+        className: 'w-full bg-green-600 text-white cursor-not-allowed',
+        disabled: true
+      };
+    } else {
+      // For new users with no KYC status or null/undefined status
+      return {
+        text: 'Start Verification',
         className: 'w-full',
         disabled: false
       };
@@ -568,6 +575,7 @@ const [showCropper, setShowCropper] = useState(false);
           </Badge>
         );
       default:
+        // For new users with no KYC status (null, undefined, or empty)
         return (
           <Badge className="bg-gray-100 text-gray-800 border-gray-200">
             <FileText className="w-3 h-3 mr-1" />
@@ -725,7 +733,7 @@ const [showCropper, setShowCropper] = useState(false);
                   </div>
                 </div>
                 
-                {(user as any)?.kycStatus !== "verified" && (() => {
+                {!["verified","approved"].includes(((user as any)?.kycStatus || '').toLowerCase()) && (() => {
                   const buttonState = getVerificationButtonState();
                   return (
                   <Button 
@@ -921,9 +929,9 @@ const [showCropper, setShowCropper] = useState(false);
                       </div>
                     </div>
                     <div className="text-right">
-{((user as any)?.kycStatus === 'verified' || (user as any)?.profileImageUrl) ? (                        <Badge className="bg-green-100 text-green-800">Complete</Badge>
+{((user as any)?.kycStatus === 'verified' || (serverUser as any)?.profileImageUrl) ? (                        <Badge className="bg-green-100 text-green-800">Complete</Badge>
                       ) : (
-                        <Badge variant="secondary">Pending</Badge>
+                        <Badge variant="outline" className="text-gray-600">Not Started</Badge>
                       )}
                     </div>
                   </div>
@@ -944,7 +952,7 @@ const [showCropper, setShowCropper] = useState(false);
                     <div className="text-right">
 {((user as any)?.kycStatus === 'verified' || (user as any)?.profession) ? (                        <Badge className="bg-green-100 text-green-800">Complete</Badge>
                       ) : (
-                        <Badge variant="secondary">Pending</Badge>
+                        <Badge variant="outline" className="text-gray-600">Not Started</Badge>
                       )}
                     </div>
                   </div>
