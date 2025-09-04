@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { exchangeRates, transactions } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { storage } from '../storage';
 
 export interface ConversionQuote {
   fromAmount: number;
@@ -11,9 +12,10 @@ export interface ConversionQuote {
   fee: number;
   totalCost: number; // fromAmount + fee
   feeBreakdown?: {
-    platformFee: number; // 1% platform withdrawal fee
+    platformFee: number; // Transaction type specific fee
     transferFee: number; // Payment method specific fee (InstaPay, etc.)
   };
+  transactionType?: string;
 }
 
 export interface ConversionFees {
@@ -21,6 +23,8 @@ export interface ConversionFees {
   platformFeeFlat: number; // No flat fee
   minimumFee: number; // ₱1 minimum
 }
+
+export type TransactionType = 'deposit' | 'claim_contribution' | 'claim_tips' | 'withdraw';
 
 export class ConversionService {
   private defaultFees: ConversionFees = {
@@ -42,6 +46,50 @@ export class ConversionService {
         // Note: PayMongo doesn't support direct GCash payouts
         // All withdrawals must go through bank transfer system
         return { processing: 0, transfer: 10 };
+    }
+  }
+
+    // Calculate platform fee based on transaction type
+  private async calculatePlatformFee(amount: number, transactionType?: TransactionType): Promise<number> {
+    try {
+      if (!transactionType) {
+        return Math.max(amount * 0.01, this.defaultFees.minimumFee); // Default 1%
+      }
+
+      // Get fee configuration from database
+      const feeConfig = await storage.getFeeConfiguration(transactionType);
+      
+      if (feeConfig) {
+        const feePercent = parseFloat(feeConfig.feePercent);
+        const minimumFee = parseFloat(feeConfig.minimumFee);
+        return Math.max(amount * feePercent, minimumFee);
+      }
+
+      // Fallback to hardcoded values if no configuration found
+      let feePercent: number;
+      switch (transactionType) {
+        case 'deposit':
+          feePercent = 0.01; // 1% transaction fee
+          break;
+        case 'claim_contribution':
+          feePercent = 0.035; // 3.5% platform fee
+          break;
+        case 'claim_tips':
+          feePercent = 0.035; // 3.5% platform fee
+          break;
+        case 'withdraw':
+          feePercent = 0.01; // 1% transaction fee
+          break;
+        default:
+          feePercent = 0.01; // Default 1% for unknown transaction types
+          break;
+      }
+
+      return Math.max(amount * feePercent, this.defaultFees.minimumFee);
+    } catch (error) {
+      console.error('Error calculating platform fee:', error);
+      // Fallback to default calculation
+      return Math.max(amount * 0.01, this.defaultFees.minimumFee);
     }
   }
 
@@ -86,7 +134,8 @@ export class ConversionService {
     fromAmount: number,
     fromCurrency: string,
     toCurrency: string,
-    paymentMethod?: string
+    paymentMethod?: string,
+    transactionType?: TransactionType
   ): Promise<ConversionQuote> {
     try {
       const exchangeRate = await this.getExchangeRate(fromCurrency, toCurrency);
@@ -94,11 +143,8 @@ export class ConversionService {
       // Calculate base conversion amount
       const baseToAmount = fromAmount * exchangeRate;
       
-      // Calculate platform fee (1% of the FROM amount consistently)
-      const platformFee = Math.max(
-        fromAmount * this.defaultFees.conversionFeePercent,
-        this.defaultFees.minimumFee
-      );
+      // Calculate platform fee based on transaction type
+      const platformFee = await this.calculatePlatformFee(fromAmount, transactionType);
       
       // Get payment method specific fees
       const paymentFees = paymentMethod ? this.getPaymentMethodFees(paymentMethod) : { processing: 0, transfer: 0 };
@@ -131,6 +177,7 @@ export class ConversionService {
           platformFee,
           transferFee: paymentFees.transfer,
         } : undefined,
+        transactionType,
       };
     } catch (error) {
       console.error('Error calculating conversion quote:', error);

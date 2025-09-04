@@ -128,6 +128,7 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps = {}) 
         fromCurrency: "PHP",
         toCurrency: "PHP",
         paymentMethod: method,
+        transactionType: "withdraw",
       });
       const data = await response.json();
       setQuote(data);
@@ -331,7 +332,7 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps = {}) 
                     {quote.feeBreakdown && (
                       <>
                         <div className="flex justify-between items-center text-xs text-muted-foreground">
-                          <span>Platform Fee (1%):</span>
+                          <span>Transaction Fee (1%):</span>
                           <span>-₱{quote.feeBreakdown.platformFee.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center text-xs text-muted-foreground">
@@ -408,7 +409,7 @@ export function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProps = {}) 
                   {quote?.feeBreakdown && (
                     <>
                       <div className="flex justify-between items-center text-sm">
-                        <span>Platform Fee (1%):</span>
+                        <span>Transaction Fee (1%):</span>
                         <span>₱{quote.feeBreakdown.platformFee.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">

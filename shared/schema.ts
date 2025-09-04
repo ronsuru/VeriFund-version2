@@ -1147,3 +1147,50 @@ export const monthlyCampaignLimitsRelations = relations(monthlyCampaignLimits, (
     references: [users.id],
   }),
 }));
+
+// Fee configuration table
+export const feeConfigurations = pgTable("fee_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  transactionType: varchar("transaction_type").notNull(), // deposit, claim_contribution, claim_tips, withdraw
+  feePercent: decimal("fee_percent", { precision: 5, scale: 4 }).notNull(), // e.g., 0.035 for 3.5%
+  minimumFee: decimal("minimum_fee", { precision: 10, scale: 2 }).notNull(), // e.g., 1.00 for ₱1
+  isActive: boolean("is_active").default(true),
+  description: text("description"), // Human-readable description
+  updatedBy: varchar("updated_by"), // Admin who last updated this fee
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertFeeConfigurationSchema = createInsertSchema(feeConfigurations).omit({
+  id: true,
+  updatedAt: true,
+  createdAt: true,
+});
+
+export type FeeConfiguration = typeof feeConfigurations.$inferSelect;
+export type InsertFeeConfiguration = z.infer<typeof insertFeeConfigurationSchema>;
+
+// Campaign slot configuration table
+export const campaignSlotConfigurations = pgTable("campaign_slot_configurations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tierName: varchar("tier_name").notNull(), // e.g., "New User", "0-20%", "21-35%"
+  minCreditScore: integer("min_credit_score").notNull(), // Minimum credit score for this tier
+  maxCreditScore: integer("max_credit_score").notNull(), // Maximum credit score for this tier
+  freeSlots: integer("free_slots").notNull(), // Number of free slots for this tier
+  paidSlotsAvailable: integer("paid_slots_available").default(0), // Number of paid slots available
+  paidSlotPrice: decimal("paid_slot_price", { precision: 10, scale: 2 }).default("0.00"), // Price per paid slot
+  isActive: boolean("is_active").default(true),
+  description: text("description"), // Human-readable description
+  updatedBy: varchar("updated_by"), // Admin who last updated this configuration
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertCampaignSlotConfigurationSchema = createInsertSchema(campaignSlotConfigurations).omit({
+  id: true,
+  updatedAt: true,
+  createdAt: true,
+});
+
+export type CampaignSlotConfiguration = typeof campaignSlotConfigurations.$inferSelect;
+export type InsertCampaignSlotConfiguration = z.infer<typeof insertCampaignSlotConfigurationSchema>;

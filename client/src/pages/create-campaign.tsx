@@ -47,8 +47,12 @@ const campaignFormSchema = insertCampaignSchema.extend({
     "Minimum operational amount must be a positive number"
   ),
   duration: z.union([
-    z.string().min(1, "Campaign duration is required").refine(
-      (val) => !isNaN(Number(val)) && Number(val) >= 1 && Number(val) <= 365,
+    z.string().optional().refine(
+      (val) => {
+        if (!val || val === "") return true; // Allow empty duration
+        const num = Number(val);
+        return !isNaN(num) && num >= 1 && num <= 365;
+      },
       "Campaign duration must be between 1 and 365 days"
     ),
     z.number().min(1, "Campaign duration must be at least 1 day").max(365, "Campaign duration cannot exceed 365 days")
@@ -79,6 +83,21 @@ const campaignFormSchema = insertCampaignSchema.extend({
   }, {
     message: "Minimum operational amount must be less than or equal to goal amount",
     path: ["minimumAmount"],
+  })
+  .refine((data) => {
+    const startDate = new Date(data.startDate);
+    const endDate = new Date(data.endDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    // Start date should be in the future (or today)
+    if (startDate < today) {
+      return false;
+    }
+    return startDate < endDate;
+  }, {
+    message: "Start date must be today or in the future, and end date must be after start date",
+    path: ["startDate"],
   })
   .refine((data) => {
     const startDate = new Date(data.startDate);
@@ -547,11 +566,11 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                     name="duration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Campaign Duration (days)</FormLabel>
+                        <FormLabel>Campaign Duration (days) - Optional</FormLabel>
                         <FormControl>
                           <Input 
                             type="number"
-                            placeholder="e.g. 45"
+                            placeholder="e.g. 45 (optional)"
                             {...field}
                             min="1"
                             max="365"
@@ -562,7 +581,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                         </FormControl>
                         <FormMessage />
                         <p className="text-xs text-muted-foreground">
-                          Choose how many days your campaign will run (1-365 days)
+                          Optional: Choose how many days your campaign will run (1-365 days). If not specified, duration will be calculated from your start and end dates.
                         </p>
                       </FormItem>
                     )}
@@ -716,7 +735,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                     <div className="space-y-4">
                       <div className="flex items-center space-x-2">
                         <Clock className="w-5 h-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold">Campaign Timeline</h3>
+                        <h3 className="text-lg font-semibold">Initiative Timeline</h3>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-4">
@@ -725,7 +744,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                           name="startDate"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Target Start Date</FormLabel>
+                              <FormLabel>Initiative Start Date</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="date"
@@ -735,7 +754,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                               </FormControl>
                               <FormMessage />
                               <p className="text-xs text-muted-foreground">
-                                When do you plan to start the campaign activities?
+                                When do you plan to start your initiative/activities? (Must be today or in the future)
                               </p>
                             </FormItem>
                           )}
@@ -746,7 +765,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                           name="endDate"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Target End Date</FormLabel>
+                              <FormLabel>Initiative End Date</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="date"
@@ -756,7 +775,7 @@ import('@/lib/loginModal').then(m => m.openLoginModal());        }, 500);
                               </FormControl>
                               <FormMessage />
                               <p className="text-xs text-muted-foreground">
-                                When do you expect the campaign to end?
+                                When do you expect to complete your initiative/activities?
                               </p>
                             </FormItem>
                           )}

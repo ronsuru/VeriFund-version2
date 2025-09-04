@@ -8,7 +8,7 @@ import { Info } from "lucide-react";
 export default function FeeCalculator() {
   const [amount, setAmount] = useState(1000);
 
-  const platformFee = amount * 0.038;
+  const platformFee = amount * 0.035;
   const conversionFee = amount * 0.01;
   const withdrawalFee = 20; // Fixed fee
   const tipsFee = amount * 0.01;
@@ -33,14 +33,14 @@ export default function FeeCalculator() {
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
                       <div className="font-medium">Platform Fee</div>
-                      <div className="text-sm text-muted-foreground">Applied when funds are released</div>
+                      <div className="text-sm text-muted-foreground">Applied when claiming contributions or tips</div>
                     </div>
-                    <div className="text-xl font-bold text-primary" data-testid="fee-platform">3.8%</div>
+                    <div className="text-xl font-bold text-primary" data-testid="fee-platform">3.5%</div>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div>
-                      <div className="font-medium">Conversion Fee</div>
-                      <div className="text-sm text-muted-foreground">PHP ↔ PHP conversion</div>
+                      <div className="font-medium">Transaction Fee</div>
+                      <div className="text-sm text-muted-foreground">Applied for deposits and withdrawals</div>
                     </div>
                     <div className="text-xl font-bold text-primary" data-testid="fee-conversion">1.0%</div>
                   </div>
@@ -88,11 +88,11 @@ export default function FeeCalculator() {
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Platform fee (3.8%):</span>
+                        <span>Platform fee (3.5%):</span>
                         <span data-testid="calculator-platform-fee">₱{platformFee.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>Conversion fee (1%):</span>
+                        <span>Transaction fee (1%):</span>
                         <span data-testid="calculator-conversion-fee">₱{conversionFee.toFixed(2)}</span>
                       </div>
                       <Separator />

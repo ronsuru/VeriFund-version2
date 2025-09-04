@@ -39,15 +39,29 @@ export function DepositModal({ showText = true, className }: { showText?: boolea
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
   const { toast } = useToast();
 
-  // Calculate simple fee directly
-  const calculateFee = (depositAmount: string) => {
+  // Calculate fee using conversion service
+  const calculateFee = async (depositAmount: string) => {
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount <= 0) {
       setFee(0);
       return;
     }
-    const calculatedFee = Math.max(amount * 0.01, 1); // 1% fee, minimum ₱1
-    setFee(calculatedFee);
+    
+    try {
+      const response = await apiRequest("POST", "/api/conversions/quote", {
+        amount: depositAmount,
+        fromCurrency: "PHP",
+        toCurrency: "PHP",
+        transactionType: "deposit",
+      });
+      const data = await response.json();
+      setFee(data.fee);
+    } catch (error) {
+      console.error('Error calculating fee:', error);
+      // Fallback to direct calculation
+      const calculatedFee = Math.max(amount * 0.01, 1); // 1% fee, minimum ₱1
+      setFee(calculatedFee);
+    }
   };
 
   // Create deposit
@@ -115,7 +129,7 @@ export function DepositModal({ showText = true, className }: { showText?: boolea
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
-    calculateFee(value);
+    calculateFee(value).catch(console.error);
   };
 
   const handleDeposit = () => {
@@ -182,7 +196,7 @@ export function DepositModal({ showText = true, className }: { showText?: boolea
                       <span>₱{Number(amount || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>Fees:</span>
+                      <span>Transaction Fee:</span>
                       <span>₱{Number(fee || 0).toLocaleString()}</span>
                     </div>
                     <Separator />

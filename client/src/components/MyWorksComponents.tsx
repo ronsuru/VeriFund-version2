@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { calculateDaysOngoing, formatDaysOngoing } from "@/utils/dateUtils";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +19,8 @@ import {
   Calendar,
   Target,
   DollarSign,
-  User as CreatorIcon
+  User as CreatorIcon,
+  Clock
 } from "lucide-react";
 
 // My Works Analytics Component
@@ -311,10 +313,16 @@ export function MyWorksCampaignsTab() {
                   
                   <div className="space-y-1">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Calendar className="w-3 h-3" />
-                      Duration
+                      <Clock className="w-3 h-3" />
+                      Campaign Duration
                     </div>
-                    <p className="font-semibold text-sm">{campaign.duration} days</p>
+                    <p className="font-semibold text-sm">
+                      {(() => {
+                        const daysOngoing = calculateDaysOngoing(campaign.startDate, campaign.endDate, campaign.status);
+                        const daysText = formatDaysOngoing(daysOngoing, campaign.status);
+                        return daysOngoing !== null ? daysText.replace(/^ \(/, '').replace(/\)$/, '') : `${campaign.duration} days`;
+                      })()}
+                    </p>
                   </div>
                 </div>
 

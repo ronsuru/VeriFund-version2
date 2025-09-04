@@ -602,6 +602,30 @@ onClick={() => {
                         <span className="text-lg">📈</span>
                         <span>Reports</span>
                       </Link>
+                      <Link 
+                        href="/admin?tab=fees"
+                        className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=fees')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">💳</span>
+                        <span>Fees</span>
+                      </Link>
+                      <Link 
+                        href="/admin?tab=campaign-slots"
+                        className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location === "/admin" && window.location.search.includes('tab=campaign-slots')
+                            ? "bg-green-600 text-white shadow-lg"
+                            : "bg-white/70 text-gray-700 hover:bg-white hover:shadow-md"
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="text-lg">🎯</span>
+                        <span>Campaign Slots</span>
+                      </Link>
                     </div>
                   </div>
 

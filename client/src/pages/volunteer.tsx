@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import Navigation from "@/components/navigation";
+import { calculateDaysOngoing, formatDaysOngoing } from "@/utils/dateUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,8 @@ import {
   Heart,
   UserPlus,
   MessageSquare,
-  Eye
+  Eye,
+  Shield
 } from "lucide-react";
 
 interface VolunteerOpportunity {
@@ -220,6 +222,12 @@ function CampaignVolunteerCard({ campaign }: { campaign: any }) {
 
   const availableSlots = campaign.volunteerSlots - (campaign.volunteerSlotsFilledCount || 0);
   const isFullyBooked = availableSlots <= 0;
+  
+  // Check KYC status for volunteer application
+  const userKycStatus = (user as any)?.kycStatus?.toLowerCase();
+  const isKycVerified = userKycStatus === 'verified' || userKycStatus === 'approved';
+  const isKycRejected = userKycStatus === 'rejected';
+  const isKycPending = userKycStatus === 'pending' || userKycStatus === 'on_progress';
 
   const applyMutation = useMutation({
     mutationFn: (applicationData: any) => 
@@ -408,68 +416,89 @@ function CampaignVolunteerCard({ campaign }: { campaign: any }) {
           )}
           <div className="flex items-center text-muted-foreground">
             <Calendar className="w-4 h-4 mr-2" />
-            <span>Target: {new Date(campaign.targetDate).toLocaleDateString()}</span>
+            <span>Target: {campaign.targetDate ? (() => {
+              try {
+                return new Date(campaign.targetDate).toLocaleDateString();
+              } catch {
+                return 'Not specified';
+              }
+            })() : 'Not specified'}</span>
           </div>
           <div className="flex items-center text-muted-foreground">
             <Users className="w-4 h-4 mr-2" />
             <span>{availableSlots} volunteer slots available</span>
           </div>
+          {/* Days Ongoing Display */}
+          {(() => {
+            const daysOngoing = calculateDaysOngoing(campaign.startDate, campaign.endDate, campaign.status);
+            const daysText = formatDaysOngoing(daysOngoing, campaign.status);
+            return daysOngoing !== null ? (
+              <div className="flex items-center text-muted-foreground">
+                <Clock className="w-4 h-4 mr-2" />
+                <span>Campaign{daysText}</span>
+              </div>
+            ) : null;
+          })()}
         </div>
 
         <div className="pt-4 border-t">
           <div className="flex flex-col sm:flex-row gap-2">
             {/* Apply Button */}
             {!isFullyBooked ? (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="flex-1 text-xs min-w-0" data-testid={`button-apply-volunteer-${campaign.id}`}>
-                    <UserPlus className="w-3 h-3 mr-1 flex-shrink-0" />
-                    <span className="truncate">APPLY TO VOLUNTEER</span>
-                  </Button>
-                </DialogTrigger>
+              isKycVerified ? (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="flex-1 text-xs min-w-0" data-testid={`button-apply-volunteer-${campaign.id}`}>
+                      <UserPlus className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">APPLY TO VOLUNTEER</span>
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Apply to Volunteer</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="intent">Why do you want to volunteer for this campaign? *</Label>
+                      <Label htmlFor="intent">Why do you want to volunteer? *</Label>
                       <Textarea
                         id="intent"
-                        placeholder="Share your motivation and how you can contribute..."
                         value={intent}
                         onChange={(e) => setIntent(e.target.value)}
+                        placeholder="Explain your motivation and what you hope to contribute..."
                         className="min-h-[100px]"
-                        data-testid="textarea-volunteer-intent"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="telegramDisplayName">Telegram Display Name *</Label>
                       <Input
                         id="telegramDisplayName"
-                        placeholder="Your display name on Telegram"
                         value={telegramDisplayName}
                         onChange={(e) => setTelegramDisplayName(e.target.value)}
-                        className="mt-1"
-                        data-testid="input-telegram-display-name"
+                        placeholder="Your Telegram display name"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="telegramUsername">Telegram Username *</Label>
                       <Input
                         id="telegramUsername"
-                        placeholder="@yourusername"
                         value={telegramUsername}
                         onChange={(e) => setTelegramUsername(e.target.value)}
-                        className="mt-1"
-                        data-testid="input-telegram-username"
+                        placeholder="@username"
                       />
                     </div>
-                    <Button 
-                      onClick={handleApply} 
-                      className="w-full"
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleApply}
                       disabled={applyMutation.isPending}
-                      data-testid="button-submit-application"
+                      className="flex-1"
                     >
                       {applyMutation.isPending ? "Submitting..." : "Submit Application"}
                     </Button>
@@ -477,12 +506,23 @@ function CampaignVolunteerCard({ campaign }: { campaign: any }) {
                 </DialogContent>
               </Dialog>
             ) : (
-              <Button disabled className="flex-1 text-xs min-w-0">
+              <Button 
+                className="flex-1 text-xs min-w-0" 
+                disabled 
+                title={isKycRejected ? "Complete KYC verification to apply" : isKycPending ? "KYC verification in progress" : "Complete KYC verification to apply"}
+              >
+                <Shield className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">
+                  {isKycRejected ? "KYC REQUIRED" : isKycPending ? "KYC PENDING" : "KYC REQUIRED"}
+                </span>
+              </Button>
+            )
+            ) : (
+              <Button className="flex-1 text-xs min-w-0" disabled>
                 <XCircle className="w-3 h-3 mr-1 flex-shrink-0" />
                 <span className="truncate">FULLY BOOKED</span>
               </Button>
             )}
-
             {/* View Campaign Details Button */}
             <Button 
               variant="outline" 
@@ -514,6 +554,12 @@ function VolunteerOpportunityCard({ opportunity }: { opportunity: VolunteerOppor
 
   const availableSlots = opportunity.slotsNeeded - opportunity.slotsFilled;
   const isFullyBooked = availableSlots <= 0;
+  
+  // Check KYC status for volunteer application
+  const userKycStatus = (user as any)?.kycStatus?.toLowerCase();
+  const isKycVerified = userKycStatus === 'verified' || userKycStatus === 'approved';
+  const isKycRejected = userKycStatus === 'rejected';
+  const isKycPending = userKycStatus === 'pending' || userKycStatus === 'on_progress';
 
   const applyMutation = useMutation({
     mutationFn: (applicationData: any) => 
@@ -618,16 +664,18 @@ function VolunteerOpportunityCard({ opportunity }: { opportunity: VolunteerOppor
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="flex-1 text-xs min-w-0" 
-                disabled={isFullyBooked || applyMutation.isPending}
-                data-testid={`button-apply-${opportunity.id}`}
-              >
-                <span className="truncate">{isFullyBooked ? "Fully Booked" : "Apply to Volunteer"}</span>
-              </Button>
-            </DialogTrigger>
+          {!isFullyBooked ? (
+            isKycVerified ? (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="flex-1 text-xs min-w-0" 
+                    disabled={applyMutation.isPending}
+                    data-testid={`button-apply-${opportunity.id}`}
+                  >
+                    <span className="truncate">Apply to Volunteer</span>
+                  </Button>
+                </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Apply for Volunteer Opportunity</DialogTitle>
@@ -637,57 +685,81 @@ function VolunteerOpportunityCard({ opportunity }: { opportunity: VolunteerOppor
                 <Label htmlFor="intent">Why do you want to volunteer? *</Label>
                 <Textarea
                   id="intent"
-                  placeholder="Explain your motivation and how you can contribute..."
                   value={intent}
                   onChange={(e) => setIntent(e.target.value)}
-                  className="mt-1"
-                  data-testid="textarea-intent"
+                  placeholder="Explain your motivation and what you hope to contribute..."
+                  className="min-h-[100px]"
                 />
               </div>
               <div>
                 <Label htmlFor="telegramDisplayName">Telegram Display Name *</Label>
                 <Input
                   id="telegramDisplayName"
-                  placeholder="Your display name on Telegram"
                   value={telegramDisplayName}
                   onChange={(e) => setTelegramDisplayName(e.target.value)}
-                  className="mt-1"
-                  data-testid="input-telegram-display-name"
+                  placeholder="Your Telegram display name"
                 />
               </div>
               <div>
                 <Label htmlFor="telegramUsername">Telegram Username *</Label>
                 <Input
                   id="telegramUsername"
-                  placeholder="@yourusername"
                   value={telegramUsername}
                   onChange={(e) => setTelegramUsername(e.target.value)}
-                  className="mt-1"
-                  data-testid="input-telegram-username"
+                  placeholder="@username"
                 />
               </div>
-              <Button 
-                onClick={handleApply} 
-                className="w-full"
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleApply}
                 disabled={applyMutation.isPending}
-                data-testid="button-submit-application"
+                className="flex-1"
               >
                 {applyMutation.isPending ? "Submitting..." : "Submit Application"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
-
-        {/* Campaign Details Dialog */}
-        <Button 
-          variant="outline" 
-          className="flex-1 text-xs min-w-0"
-          onClick={() => setLocation(`/campaigns/${opportunity.campaignId}`)}
-          data-testid={`button-view-campaign-details-${opportunity.id}`}
-        >
-          <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
-          <span className="truncate">VIEW CAMPAIGN DETAILS</span>
-        </Button>
+            ) : (
+              <Button 
+                className="flex-1 text-xs min-w-0" 
+                disabled 
+                title={isKycRejected ? "Complete KYC verification to apply" : isKycPending ? "KYC verification in progress" : "Complete KYC verification to apply"}
+              >
+                <Shield className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">
+                  {isKycRejected ? "KYC REQUIRED" : isKycPending ? "KYC PENDING" : "KYC REQUIRED"}
+                </span>
+              </Button>
+            )
+            ) : (
+              <Button 
+                className="flex-1 text-xs min-w-0" 
+                disabled
+                data-testid={`button-apply-${opportunity.id}`}
+              >
+                <XCircle className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">FULLY BOOKED</span>
+              </Button>
+            )}
+          {/* Campaign Details Dialog */}
+          <Button 
+            variant="outline" 
+            className="flex-1 text-xs min-w-0"
+            onClick={() => setLocation(`/campaigns/${opportunity.campaignId}`)}
+            data-testid={`button-view-campaign-details-${opportunity.id}`}
+          >
+            <Eye className="w-3 h-3 mr-1 flex-shrink-0" />
+            <span className="truncate">VIEW CAMPAIGN DETAILS</span>
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -925,7 +997,13 @@ function InactiveCampaignCard({ campaign }: { campaign: any }) {
           )}
           <div className="flex items-center text-muted-foreground">
             <Calendar className="w-4 h-4 mr-2" />
-            <span>Target: {new Date(campaign.targetDate).toLocaleDateString()}</span>
+            <span>Target: {campaign.targetDate ? (() => {
+              try {
+                return new Date(campaign.targetDate).toLocaleDateString();
+              } catch {
+                return 'Not specified';
+              }
+            })() : 'Not specified'}</span>
           </div>
           <div className="flex items-center text-muted-foreground">
             <Users className="w-4 h-4 mr-2" />
@@ -1013,13 +1091,25 @@ function CompletedOpportunityCard({ opportunity }: { opportunity: any }) {
             </div>
             <div>
               <span className="text-muted-foreground">End Date:</span>
-              <div className="font-medium">{new Date(opportunity.endDate).toLocaleDateString()}</div>
+              <div className="font-medium">{opportunity.endDate ? (() => {
+                try {
+                  return new Date(opportunity.endDate).toLocaleDateString();
+                } catch {
+                  return 'Not specified';
+                }
+              })() : 'Not specified'}</div>
             </div>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="text-xs text-muted-foreground">
-              Campaign ended on {new Date(opportunity.campaign?.updatedAt || opportunity.endDate).toLocaleDateString()}
+              Campaign ended on {(opportunity.campaign?.updatedAt || opportunity.endDate) ? (() => {
+                try {
+                  return new Date(opportunity.campaign?.updatedAt || opportunity.endDate).toLocaleDateString();
+                } catch {
+                  return 'Not specified';
+                }
+              })() : 'Not specified'}
             </div>
             
             {/* VIEW CAMPAIGN Button */}

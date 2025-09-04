@@ -47,7 +47,7 @@ function getReactionEmoji(reactionType: string): string {
   return emojiMap[reactionType] || '👍';
 }
 
-import { insertSupportTicketSchema, insertSupportEmailTicketSchema } from "@shared/schema";
+import { insertSupportTicketSchema, insertSupportEmailTicketSchema, insertFeeConfigurationSchema, insertCampaignSlotConfigurationSchema } from "@shared/schema";
 import { NotificationService } from "./notificationService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -724,7 +724,11 @@ const userId = req.user?.claims?.sub || req.user?.sub;      // Check if user is 
         creatorId: userId,
         startDate: req.body.startDate ? new Date(req.body.startDate) : null,
         endDate: req.body.endDate ? new Date(req.body.endDate) : null,
-duration: toIntOr(req.body.duration, isDraft ? 1 : toIntOr(req.body.duration, 1)),
+        // Calculate duration from dates if not provided
+        duration: req.body.duration ? toIntOr(req.body.duration, 1) : 
+          (req.body.startDate && req.body.endDate ? 
+            Math.ceil((new Date(req.body.endDate).getTime() - new Date(req.body.startDate).getTime()) / (1000 * 60 * 60 * 24)) : 
+            (isDraft ? 1 : 30)), // Default to 30 days for non-drafts, 1 day for drafts
         // Auto-populate region based on province
         region: req.body.province ? getRegionFromProvince(req.body.province) : null,
       };
@@ -4204,8 +4208,15 @@ const userId = req.user.claims.sub;      // Check if user is admin/support - the
         return res.status(400).json({ message: 'Insufficient tips balance' });
       }
 
-      // Calculate the 1% claiming fee (minimum ₱1) based on requested amount
-      const claimingFee = Math.max(requestedAmount * 0.01, 1);
+      // Calculate the claiming fee using conversion service
+      const quote = await conversionService.getConversionQuote(
+        requestedAmount,
+        'PHP',
+        'PHP',
+        undefined,
+        'claim_tips'
+      );
+      const claimingFee = quote.fee;
       
       // Use the proper claimTips method that handles fees and transfers to PHP balance
       const claimedAmount = await storage.claimTips(userId, requestedAmount);
@@ -5605,32 +5616,7 @@ description: `Deposit ${quote.fromAmount} PHP`,      });
   // Get conversion quote with payment method fees
   app.post('/api/conversions/quote', isAuthenticated, async (req: any, res) => {
     try {
-      const { amount, fromCurrency, toCurrency, paymentMethod } = req.body;
-      
-      if (!amount || amount <= 0) {
-        return res.status(400).json({ message: 'Invalid amount' });
-      }
-      if (!ENABLE_BLOCKCHAIN) {
-        return res.status(501).json({ message: 'Conversion service disabled' });
-      }
-      const quote = await conversionService.getConversionQuote(
-        parseFloat(amount),
-        fromCurrency || 'PHP',
-        toCurrency || 'PHP',
-        paymentMethod
-      );
-      
-      res.json(quote);
-    } catch (error) {
-      console.error('Error getting conversion quote:', error);
-      res.status(500).json({ message: 'Failed to get conversion quote' });
-    }
-  });
-
-  // Get conversion quote with payment method fees
-  app.post('/api/conversions/quote', isAuthenticated, async (req: any, res) => {
-    try {
-      const { amount, fromCurrency, toCurrency, paymentMethod } = req.body;
+      const { amount, fromCurrency, toCurrency, paymentMethod, transactionType } = req.body;
       
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: 'Invalid amount' });
@@ -5640,7 +5626,8 @@ description: `Deposit ${quote.fromAmount} PHP`,      });
         parseFloat(amount),
         fromCurrency || 'PHP',
         toCurrency || 'PHP',
-        paymentMethod
+        paymentMethod,
+        transactionType
       );
       
       res.json(quote);
@@ -7430,7 +7417,7 @@ const userId = req.user.claims.sub;      const user = await storage.getUser(user
     }
 
     try {
-      const { amount } = req.body;
+      const { amount, note } = req.body;
       
       // Validate amount parameter
       if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
@@ -7460,20 +7447,44 @@ const userId = req.user.claims.sub;      const user = await storage.getUser(user
         });
       }
       
-      // Calculate fee for the requested amount
-      const claimingFee = Math.max(requestedAmount * 0.01, 1);
+      // Calculate fee for the requested amount using conversion service
+      const quote = await conversionService.getConversionQuote(
+        requestedAmount,
+        'PHP',
+        'PHP',
+        undefined,
+        'claim_contribution'
+      );
+      const claimingFee = quote.fee;
       
       const claimedAmount = await storage.claimContributions(req.user.claims.sub, requestedAmount);
       
       // Record the claim transaction with fee details
+      const transactionDescription = note 
+        ? `Claimed ${claimedAmount} PHP from Contributions wallet (${requestedAmount.toFixed(2)} PHP - ${claimingFee.toFixed(2)} fee) - Note: ${note}`
+        : `Claimed ${claimedAmount} PHP from Contributions wallet (${requestedAmount.toFixed(2)} PHP - ${claimingFee.toFixed(2)} fee)`;
+      
       await storage.createTransaction({
         userId: req.user.claims.sub,
         type: 'conversion',
         amount: claimedAmount.toString(),
         currency: 'PHP',
-        description: `Claimed ${claimedAmount} PHP from Contributions wallet (${requestedAmount.toFixed(2)} PHP - ${claimingFee.toFixed(2)} fee)`,
+        description: transactionDescription,
         status: 'completed',
         feeAmount: claimingFee.toString(),
+      });
+
+      // Create notification for the claim
+      await storage.createNotification({
+        userId: req.user.claims.sub,
+        type: 'claim_contribution',
+        title: 'Contributions Claimed Successfully',
+        message: `You have successfully claimed ₱${claimedAmount.toFixed(2)} from your contributions balance.`,
+        data: {
+          amount: claimedAmount,
+          fee: claimingFee,
+          note: note || null
+        }
       });
 
       res.json({ 
@@ -9999,6 +10010,216 @@ let user = await storage.getUser(req.user.claims.sub);
     } catch (error) {
       console.error('Error fetching campaign closures:', error);
       res.status(500).json({ message: 'Failed to fetch campaign closures' });
+    }
+  });
+
+  // Fee Management endpoints
+  app.get('/api/admin/fees', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const fees = await storage.getFeeConfigurations();
+      res.json(fees);
+    } catch (error) {
+      console.error('Error fetching fee configurations:', error);
+      res.status(500).json({ message: 'Failed to fetch fee configurations' });
+    }
+  });
+
+  app.post('/api/admin/fees', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const validatedData = insertFeeConfigurationSchema.parse({
+        ...req.body,
+        updatedBy: user.email || user.id,
+      });
+      
+      const newFee = await storage.createFeeConfiguration(validatedData);
+      res.status(201).json(newFee);
+    } catch (error) {
+      console.error('Error creating fee configuration:', error);
+      res.status(500).json({ message: 'Failed to create fee configuration' });
+    }
+  });
+
+  app.put('/api/admin/fees/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const { id } = req.params;
+      const { transactionType, ...updateData } = req.body;
+      
+      const validatedData = insertFeeConfigurationSchema.partial().parse({
+        ...updateData,
+        updatedBy: user.email || user.id,
+      });
+      
+      const updatedFee = await storage.updateFeeConfiguration(id, validatedData);
+      res.json(updatedFee);
+    } catch (error) {
+      console.error('Error updating fee configuration:', error);
+      res.status(500).json({ message: 'Failed to update fee configuration' });
+    }
+  });
+
+  app.delete('/api/admin/fees/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const { id } = req.params;
+      await storage.deleteFeeConfiguration(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting fee configuration:', error);
+      res.status(500).json({ message: 'Failed to delete fee configuration' });
+    }
+  });
+
+  app.post('/api/admin/fees/initialize', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      await storage.initializeDefaultFees();
+      res.json({ message: 'Default fees initialized successfully' });
+    } catch (error) {
+      console.error('Error initializing default fees:', error);
+      res.status(500).json({ message: 'Failed to initialize default fees' });
+    }
+  });
+
+  // Campaign Slot Management endpoints
+  app.get('/api/admin/campaign-slots', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const slots = await storage.getCampaignSlotConfigurations();
+      res.json(slots);
+    } catch (error) {
+      console.error('Error fetching campaign slot configurations:', error);
+      res.status(500).json({ message: 'Failed to fetch campaign slot configurations' });
+    }
+  });
+
+  app.post('/api/admin/campaign-slots', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const validatedData = insertCampaignSlotConfigurationSchema.parse({
+        ...req.body,
+        updatedBy: user.email || user.id,
+      });
+      
+      const newSlot = await storage.createCampaignSlotConfiguration(validatedData);
+      res.status(201).json(newSlot);
+    } catch (error) {
+      console.error('Error creating campaign slot configuration:', error);
+      res.status(500).json({ message: 'Failed to create campaign slot configuration' });
+    }
+  });
+
+  app.put('/api/admin/campaign-slots/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const { id } = req.params;
+      const { tierName, ...updateData } = req.body;
+      
+      const validatedData = insertCampaignSlotConfigurationSchema.partial().parse({
+        ...updateData,
+        updatedBy: user.email || user.id,
+      });
+      
+      const updatedSlot = await storage.updateCampaignSlotConfiguration(id, validatedData);
+      res.json(updatedSlot);
+    } catch (error) {
+      console.error('Error updating campaign slot configuration:', error);
+      res.status(500).json({ message: 'Failed to update campaign slot configuration' });
+    }
+  });
+
+  app.delete('/api/admin/campaign-slots/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      const { id } = req.params;
+      await storage.deleteCampaignSlotConfiguration(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting campaign slot configuration:', error);
+      res.status(500).json({ message: 'Failed to delete campaign slot configuration' });
+    }
+  });
+
+  app.post('/api/admin/campaign-slots/initialize', isAuthenticated, async (req: any, res) => {
+    try {
+      let user = await storage.getUser(req.user.claims.sub);
+      if (!user && req.user?.email) {
+        user = await storage.getUserByEmail(req.user.email);
+      }
+      if (!((req.user?.isAdmin || req.user?.isSupport) || (user?.isAdmin || user?.isSupport))) {
+        return res.status(403).json({ message: "Admin or support access required" });
+      }
+      
+      await storage.initializeDefaultCampaignSlots();
+      res.json({ message: 'Default campaign slot configurations initialized successfully' });
+    } catch (error) {
+      console.error('Error initializing default campaign slots:', error);
+      res.status(500).json({ message: 'Failed to initialize default campaign slots' });
     }
   });
 

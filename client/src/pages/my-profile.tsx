@@ -40,6 +40,7 @@ import {
   MessageCircle,
   Upload,
   X,
+  FileText,
 LifeBuoy,
   RefreshCw} from "lucide-react";
 import { format } from "date-fns";
@@ -59,6 +60,7 @@ import { ProfileImageCropper } from "@/components/ProfileImageCropper";const cla
     },
     "Amount must be a positive number (max 999,999)"
   ),
+  note: z.string().optional(),
 });
 
 const claimContributionFormSchema = z.object({
@@ -69,6 +71,7 @@ const claimContributionFormSchema = z.object({
     },
     "Amount must be a positive number (max 999,999)"
   ),
+  note: z.string().optional(),
 });
 
 const supportTicketFormSchema = insertSupportTicketSchema.extend({
@@ -129,7 +132,21 @@ export default function MyProfile() {
 const [showCropper, setShowCropper] = useState(false);
   const [pfpCacheBust, setPfpCacheBust] = useState<number>(0);
   const [editingNickname, setEditingNickname] = useState(false);
-  const [nicknameValue, setNicknameValue] = useState('');  // Tip claiming form setup
+  const [nicknameValue, setNicknameValue] = useState('');
+  
+  // Calculation state for claim modals
+  const [tipCalculation, setTipCalculation] = useState<{
+    amount: number;
+    fee: number;
+    netAmount: number;
+  } | null>(null);
+  const [contributionCalculation, setContributionCalculation] = useState<{
+    amount: number;
+    fee: number;
+    netAmount: number;
+  } | null>(null);
+
+  // Tip claiming form setup
   const claimTipForm = useForm<z.infer<typeof claimTipFormSchema>>({
     resolver: zodResolver(claimTipFormSchema),
     defaultValues: {
@@ -160,6 +177,72 @@ const [showCropper, setShowCropper] = useState(false);
     },
   });
 
+  // Calculate fees for tips claiming
+  const calculateTipFees = async (amount: string) => {
+    if (!amount || parseFloat(amount) <= 0) {
+      setTipCalculation(null);
+      return;
+    }
+
+    try {
+      const response = await apiRequest("POST", "/api/conversions/quote", {
+        fromAmount: parseFloat(amount),
+        fromCurrency: "PHP",
+        toCurrency: "PHP",
+        transactionType: "claim_tips"
+      });
+      
+      const quote = await response.json();
+      setTipCalculation({
+        amount: parseFloat(amount),
+        fee: quote.fee || 0,
+        netAmount: quote.toAmount || (parseFloat(amount) - (quote.fee || 0))
+      });
+    } catch (error) {
+      console.error('Error calculating tip fees:', error);
+      // Fallback calculation with 3.5% fee
+      const fee = Math.max(parseFloat(amount) * 0.035, 1);
+      setTipCalculation({
+        amount: parseFloat(amount),
+        fee,
+        netAmount: parseFloat(amount) - fee
+      });
+    }
+  };
+
+  // Calculate fees for contributions claiming
+  const calculateContributionFees = async (amount: string) => {
+    if (!amount || parseFloat(amount) <= 0) {
+      setContributionCalculation(null);
+      return;
+    }
+
+    try {
+      const response = await apiRequest("POST", "/api/conversions/quote", {
+        fromAmount: parseFloat(amount),
+        fromCurrency: "PHP",
+        toCurrency: "PHP",
+        transactionType: "claim_contribution"
+      });
+      
+      const quote = await response.json();
+      setContributionCalculation({
+        amount: parseFloat(amount),
+        fee: quote.fee || 0,
+        netAmount: quote.toAmount || (parseFloat(amount) - (quote.fee || 0))
+      });
+    } catch (error) {
+      console.error('Error calculating contribution fees:', error);
+      // Fallback calculation with 3.5% fee
+      const fee = Math.max(parseFloat(amount) * 0.035, 1);
+      setContributionCalculation({
+        amount: parseFloat(amount),
+        fee,
+        netAmount: parseFloat(amount) - fee
+      });
+    }
+  };
+
   const { data: userTransactions = [] } = useQuery({
     queryKey: ["/api/transactions/user"],
     enabled: isAuthenticated,
@@ -189,7 +272,8 @@ const [showCropper, setShowCropper] = useState(false);
   const claimTipsMutation = useMutation({
     mutationFn: async (data: z.infer<typeof claimTipFormSchema>) => {
       return await apiRequest("POST", "/api/users/claim-tips", {
-        amount: parseFloat(data.amount)
+        amount: parseFloat(data.amount),
+        note: data.note
       });
     },
     onSuccess: async (response: any) => {
@@ -203,6 +287,7 @@ const [showCropper, setShowCropper] = useState(false);
       });
       setIsClaimTipsModalOpen(false);
       claimTipForm.reset();
+      setTipCalculation(null);
       
       // Refresh user data to show updated balances
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -229,9 +314,10 @@ const [showCropper, setShowCropper] = useState(false);
   });
 
   const claimContributionsMutation = useMutation({
-    mutationFn: async (data: { amount: string }) => {
+    mutationFn: async (data: { amount: string; note?: string }) => {
       return await apiRequest("POST", "/api/wallet/claim-contributions", {
-        amount: parseFloat(data.amount)
+        amount: parseFloat(data.amount),
+        note: data.note
       });
     },
     onSuccess: (data: any) => {
@@ -242,6 +328,7 @@ const [showCropper, setShowCropper] = useState(false);
       });
       setIsClaimContributionsModalOpen(false);
       claimContributionForm.reset();
+      setContributionCalculation(null);
       
       // Update cached user balances without forcing refetch
       queryClient.setQueryData(["/api/auth/user"], (prev: any) => ({ ...(prev || {}), balance: data?.newBalance ?? (prev?.balance ?? 0) }));
@@ -499,26 +586,26 @@ const [showCropper, setShowCropper] = useState(false);
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 mt-24">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-600 mt-2">Manage your account information and track your VeriFund journey</p>
+      <div className="max-w-7xl mx-auto py-4 sm:py-8 px-4 sm:px-6 lg:px-8 mt-16 sm:mt-24">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Profile</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Manage your account information and track your VeriFund journey</p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Profile Information Card */}
-          <div className="xl:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader className="text-center">
                 <div className="relative mx-auto mb-4">
-                  <div className="w-24 h-24 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center mx-auto relative group">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center mx-auto relative group">
 {(serverUser as any)?.profileImageUrl ? (
                       <img 
                         src={`${(/^https?:\/\//.test(((serverUser as any).profileImageUrl || '')) ? (serverUser as any).profileImageUrl : (((serverUser as any).profileImageUrl || '').startsWith('/') ? (serverUser as any).profileImageUrl : '/' + ((serverUser as any).profileImageUrl || '')))}${pfpCacheBust ? `?ts=${pfpCacheBust}` : ''}`}                        alt="Profile"
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl font-medium text-gray-600">
+                      <span className="text-xl sm:text-2xl font-medium text-gray-600">
                         {(user as any)?.firstName?.charAt(0) || 'U'}
                       </span>
                     )}
@@ -544,7 +631,7 @@ const [showCropper, setShowCropper] = useState(false);
                       <Input
                         value={nicknameValue}
                         onChange={(e) => setNicknameValue(e.target.value)}
-                        className="text-center text-lg font-semibold w-40"
+                        className="text-center text-base sm:text-lg font-semibold w-32 sm:w-40"
                         placeholder="Enter nickname"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
@@ -923,7 +1010,7 @@ const [showCropper, setShowCropper] = useState(false);
           </div>
 
           {/* Main Content */}
-          <div className="xl:col-span-3 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Wallet Overview */}
             <Card>
               <CardHeader>
@@ -933,7 +1020,7 @@ const [showCropper, setShowCropper] = useState(false);
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
                       ₱{parseFloat((user as any)?.phpBalance || "0").toLocaleString()}
@@ -988,13 +1075,56 @@ const [showCropper, setShowCropper] = useState(false);
                                         type="number"
                                         min="1"
                                         {...field}
+                                        onChange={(e) => {
+                                          field.onChange(e);
+                                          calculateTipFees(e.target.value);
+                                        }}
                                         data-testid="input-claim-tip-amount"
                                       />
                                     </FormControl>
-                                    <div className="text-xs text-muted-foreground mt-1">
+                                                                                                              <div className="text-xs text-muted-foreground mt-1">
                                       Available to claim: ₱{parseFloat((user as any)?.tipsBalance || '0').toLocaleString()}<br/>
-                                      Tips will be transferred to your PHP wallet
+                                      • 3.5% Platform fee will be deducted (minimum ₱1)<br/>
+                                      • Net amount will be transferred to your PHP wallet
                                     </div>
+                                    {tipCalculation && (
+                                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="text-sm font-medium text-blue-800 mb-2">Calculation Breakdown:</div>
+                                        <div className="space-y-1 text-xs">
+                                          <div className="flex justify-between">
+                                            <span>Claim Amount:</span>
+                                            <span className="font-medium">₱{tipCalculation.amount.toLocaleString()}</span>
+                                          </div>
+                                          <div className="flex justify-between text-red-600">
+                                            <span>Platform Fee (3.5%):</span>
+                                            <span className="font-medium">-₱{tipCalculation.fee.toLocaleString()}</span>
+                                          </div>
+                                          <div className="border-t border-blue-300 pt-1 flex justify-between font-semibold text-blue-900">
+                                            <span>Net Amount:</span>
+                                            <span>₱{tipCalculation.netAmount.toLocaleString()}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={claimTipForm.control}
+                                name="note"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Note (Optional)</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        placeholder="Add a note about this claim..."
+                                        className="resize-none"
+                                        rows={3}
+                                        {...field}
+                                        data-testid="input-claim-tip-note"
+                                      />
+                                    </FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 )}
@@ -1004,7 +1134,10 @@ const [showCropper, setShowCropper] = useState(false);
                                   type="button"
                                   variant="outline" 
                                   className="flex-1"
-                                  onClick={() => setIsClaimTipsModalOpen(false)}
+                                  onClick={() => {
+                                    setIsClaimTipsModalOpen(false);
+                                    setTipCalculation(null);
+                                  }}
                                 >
                                   Cancel
                                 </Button>
@@ -1061,14 +1194,56 @@ const [showCropper, setShowCropper] = useState(false);
                                         type="number"
                                         min="1"
                                         {...field}
+                                        onChange={(e) => {
+                                          field.onChange(e);
+                                          calculateContributionFees(e.target.value);
+                                        }}
                                         data-testid="input-claim-contribution-amount"
                                       />
                                     </FormControl>
                                     <div className="text-xs text-muted-foreground mt-1">
                                       Available to claim: ₱{parseFloat((user as any)?.contributionsBalance || '0').toLocaleString()}<br/>
-                                      • 1% claiming fee will be deducted (minimum ₱1)<br/>
+                                      • 3.5% Platform fee will be deducted (minimum ₱1)<br/>
                                       • Net amount will be transferred to your PHP wallet
                                     </div>
+                                    {contributionCalculation && (
+                                      <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                                        <div className="text-sm font-medium text-purple-800 mb-2">Calculation Breakdown:</div>
+                                        <div className="space-y-1 text-xs">
+                                          <div className="flex justify-between">
+                                            <span>Claim Amount:</span>
+                                            <span className="font-medium">₱{contributionCalculation.amount.toLocaleString()}</span>
+                                          </div>
+                                          <div className="flex justify-between text-red-600">
+                                            <span>Platform Fee (3.5%):</span>
+                                            <span className="font-medium">-₱{contributionCalculation.fee.toLocaleString()}</span>
+                                          </div>
+                                          <div className="border-t border-purple-300 pt-1 flex justify-between font-semibold text-purple-900">
+                                            <span>Net Amount:</span>
+                                            <span>₱{contributionCalculation.netAmount.toLocaleString()}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={claimContributionForm.control}
+                                name="note"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Note (Optional)</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        placeholder="Add a note about this claim..."
+                                        className="resize-none"
+                                        rows={3}
+                                        {...field}
+                                        data-testid="input-claim-contribution-note"
+                                      />
+                                    </FormControl>
                                     <FormMessage />
                                   </FormItem>
                                 )}
@@ -1078,7 +1253,10 @@ const [showCropper, setShowCropper] = useState(false);
                                   type="button"
                                   variant="outline" 
                                   className="flex-1"
-                                  onClick={() => setIsClaimContributionsModalOpen(false)}
+                                  onClick={() => {
+                                    setIsClaimContributionsModalOpen(false);
+                                    setContributionCalculation(null);
+                                  }}
                                 >
                                   Cancel
                                 </Button>
@@ -1101,7 +1279,7 @@ const [showCropper, setShowCropper] = useState(false);
             </Card>
 
             {/* Analytics & Milestones */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Analytics */}
               <Card>
                 <CardHeader>
@@ -1111,7 +1289,7 @@ const [showCropper, setShowCropper] = useState(false);
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                       <div className="text-2xl font-bold text-blue-600">{(userCampaigns as any[]).length}</div>
                       <div className="text-sm text-blue-700">Campaigns Created</div>
@@ -1128,7 +1306,7 @@ const [showCropper, setShowCropper] = useState(false);
                       <div className="text-2xl font-bold text-yellow-600">{successfulCampaigns}</div>
                       <div className="text-sm text-yellow-700">Successful Campaigns</div>
                   </div>
-                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 col-span-2 xl:col-span-1">
+                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 col-span-2 lg:col-span-1">
                       <div className="text-2xl font-bold text-gray-600">{(userTransactions as any[]).length}</div>
                       <div className="text-sm text-gray-700">Total Transactions</div>
                     </div>
@@ -1166,7 +1344,7 @@ const [showCropper, setShowCropper] = useState(false);
                     </Button>
                   </div>              </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Credit Score */}
                     <div className="flex flex-col items-center text-center p-6 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
                       <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
@@ -1252,7 +1430,7 @@ const [showCropper, setShowCropper] = useState(false);
             </div>
 
                          {/* Recent Contributions & Tips */}
-             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                {/* Recent Contributions */}
                <Card>
                  <CardHeader>

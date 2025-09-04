@@ -2,10 +2,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Users, Box, Settings, MapPin, Calendar } from "lucide-react";
+import { Users, Box, Settings, MapPin, Calendar, Clock } from "lucide-react";
 import UserVerifiedBadge from "@/components/UserVerifiedBadge";
 import { format } from "date-fns";
 import { Link } from "wouter";
+import { calculateDaysOngoing, formatDaysOngoing } from "@/utils/dateUtils";
 import type { CampaignWithCreator } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import CampaignManagement from "@/components/CampaignManagement";
@@ -245,6 +246,21 @@ let imageUrlRaw = campaign.images ?
                 </div>
               </div>
             )}
+
+            {/* Days Ongoing Display */}
+            {(() => {
+              const daysOngoing = calculateDaysOngoing(campaign.startDate, campaign.endDate, campaign.status);
+              const daysText = formatDaysOngoing(daysOngoing, campaign.status);
+              return daysOngoing !== null ? (
+                <div className="flex items-start gap-2">
+                  <Clock className="w-3 h-3 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-gray-600 leading-relaxed">
+                    <div className="font-medium text-gray-800">Campaign Duration:</div>
+                    <div>{daysText.replace(/^ \(/, '').replace(/\)$/, '')}</div>
+                  </div>
+                </div>
+              ) : null;
+            })()}
 
             {/* Volunteer Information */}
             {campaign.needsVolunteers && (

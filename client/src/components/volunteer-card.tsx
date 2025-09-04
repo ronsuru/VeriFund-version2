@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Calendar, Clock } from "lucide-react";
 import type { VolunteerOpportunity } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface VolunteerCardProps {
   opportunity: VolunteerOpportunity;
@@ -32,6 +33,13 @@ export default function VolunteerCard({ opportunity, onApply }: VolunteerCardPro
   const slotsAvailable = opportunity.slotsNeeded - (opportunity.slotsFilled || 0);
   const category = (opportunity as any).category || 'emergency';
   const categoryColorClass = categoryColors[category as keyof typeof categoryColors] || categoryColors.emergency;
+  
+  // Get user KYC status from auth hook
+  const { user } = useAuth();
+  const userKycStatus = (user as any)?.kycStatus?.toLowerCase();
+  const isKycVerified = userKycStatus === 'verified' || userKycStatus === 'approved';
+  const isKycRejected = userKycStatus === 'rejected';
+  const isKycPending = userKycStatus === 'pending' || userKycStatus === 'on_progress';
   
   return (
     <Card className="hover:shadow-lg transition-shadow" data-testid={`card-volunteer-${opportunity.id}`}>
@@ -78,11 +86,13 @@ export default function VolunteerCard({ opportunity, onApply }: VolunteerCardPro
         <Button 
           className="w-full"
           onClick={() => onApply(opportunity.id)}
-          disabled={slotsAvailable === 0}
+          disabled={slotsAvailable === 0 || !isKycVerified}
+          title={!isKycVerified ? (isKycRejected ? "Complete KYC verification to apply" : isKycPending ? "KYC verification in progress" : "Complete KYC verification to apply") : undefined}
           data-testid={`button-apply-volunteer-${opportunity.id}`}
         >
-          {slotsAvailable === 0 ? "Fully Booked" : "Apply to Volunteer"}
+          {slotsAvailable === 0 ? "FULLY BOOKED" : !isKycVerified ? (isKycRejected ? "KYC REQUIRED" : isKycPending ? "KYC PENDING" : "KYC REQUIRED") : "Apply to Volunteer"}
         </Button>
+
       </CardContent>
     </Card>
   );
