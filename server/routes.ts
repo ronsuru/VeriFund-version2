@@ -87,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const objectStorageService = new ObjectStorageService();
 
 // Upload raw binary to Supabase Storage (used by profile image cropper)
-  app.put("/api/upload", isAuthenticated, raw({ type: "*/*", limit: "25mb" }), async (req: any, res) => {
+  app.put("/api/upload", isAuthenticated, raw({ type: "*/*", limit: "10mb" }), async (req: any, res) => {
     try {
       const userId = req.user?.claims?.sub || req.user?.sub;
       if (!userId) return res.status(401).json({ error: "Unauthorized" });
