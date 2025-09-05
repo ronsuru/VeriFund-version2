@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PaymentCancel() {
+  // Detect if we're on mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   useEffect(() => {
     // Notify opener and close this window if it was opened as a popup
     try {
@@ -14,11 +17,15 @@ export default function PaymentCancel() {
           window.location.origin
         );
       }
-      setTimeout(() => {
-        try { window.close(); } catch {}
-      }, 150);
+      
+      // On mobile, don't try to close the window, just notify the parent
+      if (!isMobile) {
+        setTimeout(() => {
+          try { window.close(); } catch {}
+        }, 150);
+      }
     } catch {}
-  }, []);
+  }, [isMobile]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6">

@@ -316,9 +316,9 @@ const { supabase } = await import('@/supabaseClient');
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert className="border-blue-200 bg-blue-50">
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
-                  <strong>Important:</strong> Please upload a clear, recent photo of yourself. Do not use cartoon avatars, 
+                <AlertCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <AlertDescription className="text-blue-800 text-sm leading-relaxed break-words">
+                  <strong>Important:</strong> Upload a clear, recent photo of yourself. Avoid cartoon avatars, 
                   AI-generated images, or photos that don't clearly show your face. This helps build trust with contributors.
                 </AlertDescription>
               </Alert>
@@ -354,10 +354,10 @@ const { supabase } = await import('@/supabaseClient');
                   </div>
                 )}
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8">
                   <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Upload Your Profile Picture</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="text-lg font-medium mb-2 text-center">Upload Your Profile Picture</h3>
+                  <p className="text-gray-600 mb-4 text-center text-sm sm:text-base">
                     Choose a professional photo that clearly shows your face
                   </p>
                   
@@ -463,9 +463,9 @@ const response = await apiRequest("PUT", "/api/user/profile-picture", requestDat
                   </ObjectUploader>
                 </div>
 
-                <div className="text-sm text-gray-500 mt-4">
+                <div className="text-sm text-gray-500 mt-4 px-2 sm:px-0">
                   <p><strong>Guidelines:</strong></p>
-                  <ul className="list-disc list-inside space-y-1 mt-2">
+                  <ul className="list-disc list-inside space-y-1 mt-2 break-words">
                     <li>Use a recent, clear photo of yourself</li>
                     <li>Face should be clearly visible and well-lit</li>
                     <li>No sunglasses, hats, or face coverings</li>
@@ -491,8 +491,8 @@ const response = await apiRequest("PUT", "/api/user/profile-picture", requestDat
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <Alert className="border-green-200 bg-green-50">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800">
+                    <Shield className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <AlertDescription className="text-green-800 text-sm leading-relaxed break-words">
                       Providing detailed professional information helps contributors understand your background 
                       and builds trust in your campaigns. All information is securely stored.
                     </AlertDescription>
@@ -694,8 +694,8 @@ const response = await apiRequest("PUT", "/api/user/profile-picture", requestDat
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert className="border-amber-200 bg-amber-50">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
+                <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                <AlertDescription className="text-amber-800 text-sm leading-relaxed break-words">
                   Please upload clear, readable photos of your documents. Ensure all text is visible 
                   and the documents are current and valid.
                 </AlertDescription>
@@ -847,8 +847,8 @@ const response = await apiRequest("PUT", "/api/user/profile-picture", requestDat
             </CardHeader>
             <CardContent className="space-y-6">
               <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <AlertDescription className="text-green-800 text-sm leading-relaxed break-words">
                   <strong>Congratulations!</strong> Your profile verification has been submitted successfully. 
                   Our team will review your information and documents within 24-48 hours.
                 </AlertDescription>

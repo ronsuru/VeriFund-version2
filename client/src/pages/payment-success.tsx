@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { CheckCircle, ArrowLeft, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ export default function PaymentSuccess() {
   const [location] = useLocation();
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
   const sessionId = queryParams.get('session_id');
+  const [countdown, setCountdown] = useState(5);
+
+  // Detect if we're on mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   const notifyParent = () => {
     try {
@@ -20,24 +24,38 @@ export default function PaymentSuccess() {
     } catch {}
   };
 
-  const closePopup = () => {
+  const redirectToDashboard = () => {
     notifyParent();
-    try { 
-      window.close(); 
-    } catch {
-      // If window.close() fails (e.g., on mobile), redirect to home
+    // On mobile, always redirect to dashboard instead of trying to close window
+    if (isMobile || !window.opener) {
       window.location.href = '/';
+    } else {
+      try { 
+        window.close(); 
+      } catch {
+        // Fallback to dashboard redirect
+        window.location.href = '/';
+      }
     }
   };
 
   useEffect(() => {
-    // Notify opener immediately, auto-close after 5 seconds
+    // Notify opener immediately
     notifyParent();
-    const timer = setTimeout(() => closePopup(), 5000);
     
-    return () => clearTimeout(timer);
-    // Also log for debugging
-    console.log('Payment completed successfully:', sessionId);
+    // Start countdown timer
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          redirectToDashboard();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(countdownInterval);
   }, [sessionId]);
 
   return (
@@ -68,10 +86,20 @@ export default function PaymentSuccess() {
           )}
           
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">This window will close automatically in 5 seconds.</p>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-2">
+                {isMobile ? 'Redirecting to dashboard' : 'This window will close automatically'} in:
+              </p>
+              <div className="text-2xl font-bold text-primary mb-2">
+                {countdown}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {isMobile ? 'Tap the button below to return immediately' : 'Click the button below to return immediately'}
+              </p>
+            </div>
             <div className="flex flex-col gap-3">
               <Button 
-                onClick={closePopup} 
+                onClick={redirectToDashboard} 
                 className="w-full h-12 text-base font-medium" 
                 data-testid="button-return-home"
               >
